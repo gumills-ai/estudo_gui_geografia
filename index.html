@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Trilha do Gui</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;600;700;800&display=swap">
@@ -149,7 +150,7 @@ td:not(:first-child),th:not(:first-child){text-align:right;font-variant-numeric:
       <p class="muted" style="margin:0 0 6px">Como funciona:</p>
       <ol style="margin:0 0 12px;padding-left:20px">
         <li style="margin-bottom:6px"><b>Trilhas:</b> cada lição tem perguntas sobre a matéria. Errar é normal, e o erro vira revisão.</li>
-        <li style="margin-bottom:6px"><b>Resumo:</b> em cada lição, toque em "Ver resumo" para reler o essencial.</li>
+        <li style="margin-bottom:6px"><b>Resumo:</b> antes de cada trilha, você lê o essencial da matéria e só então começa o desafio.</li>
         <li style="margin-bottom:6px"><b>Trilha Mestre:</b> no final, um simulado sem resumo e sem correção na hora, igualzinho à prova.</li>
       </ol>
       <p style="margin:0">Quem chega até aqui já está na frente de muita gente que desistiu. Bora? 😄</p>
@@ -766,7 +767,7 @@ function startLesson(n){
   run = { n, qs: n.qs, i: 0, hearts: 5, right: 0, answered: false, log: [] };
   $('#ltitle').textContent = n.title;
   $('#resumoBody').innerHTML = `<ul>${(n.resumo || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul>${n.svg || ''}`;
-  $('#btnResumo').hidden = !!n.mestre;
+  $('#btnResumo').hidden = true;
   $('#resumo').hidden = true;
   $('#btnResumo').setAttribute('aria-expanded', 'false');
   $('#btnResumo').textContent = 'Ver resumo';
