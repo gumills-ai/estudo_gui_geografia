@@ -1,0 +1,1087 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Trilha do Gui</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one column. Subject strip on top, a zigzag trail of lessons per unit, and a sheet at the bottom for feedback. */
+:root{
+  --bg:#eef4f1; --surface:#ffffff; --ink:#12302b; --muted:#56706a; --line:#d3e1da;
+  --sea:#1f6f8b; --land:#2f8f5b; --sand:#e9a820; --heart:#e4572e;
+  --ok:#1a7f52; --ok-soft:#d9f2e4; --bad:#b93a24; --bad-soft:#fbe0d9; --lock:#9db3ad;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1d1a; --surface:#132a26; --ink:#e4f1ec; --muted:#9bb8b0; --line:#244139;
+    --sea:#5fb6d4; --land:#5cc68a; --sand:#f4c553; --heart:#ff8a66;
+    --ok:#4cd08f; --ok-soft:#183c2d; --bad:#ff7d64; --bad-soft:#3e211a; --lock:#4b6861;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1d1a; --surface:#132a26; --ink:#e4f1ec; --muted:#9bb8b0; --line:#244139;
+  --sea:#5fb6d4; --land:#5cc68a; --sand:#f4c553; --heart:#ff8a66;
+  --ok:#4cd08f; --ok-soft:#183c2d; --bad:#ff7d64; --bad-soft:#3e211a; --lock:#4b6861;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+h1,h2,h3{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;text-wrap:balance;margin:0}
+.app{max-width:520px;margin:0 auto;padding-block:12px 56px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.top h1{font-size:26px;font-weight:800}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:14px;background:var(--surface)}
+
+/* Subjects */
+.subjects{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
+.subj{flex:none;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:14px}
+.subj[aria-current="true"]{background:var(--sea);color:var(--bg);border-color:var(--sea)}
+.subj.off{color:var(--muted);cursor:not-allowed}
+.subnote{font-size:13px;color:var(--muted);margin:4px 0 8px;min-height:1.2em}
+
+/* Trail */
+.unit{margin-top:28px}
+.unit header{margin-bottom:6px}
+.eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.unit h2{font-size:21px;font-weight:800}
+.note{font-size:13px;color:var(--muted);margin:4px 0 0}
+.path{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:16px}
+.node{position:relative;width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;background:var(--sea);color:var(--bg);box-shadow:0 5px 0 color-mix(in srgb, var(--sea) 60%, #000);transition:transform .15s}
+.node b{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;font-weight:800}
+.node span{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:8px;width:max-content;max-width:180px;text-align:center;font-size:13px;font-weight:700;color:var(--ink);white-space:normal;line-height:1.25}
+.node em{position:absolute;bottom:-6px;right:-6px;font-style:normal;font-size:11px;font-weight:800;background:var(--sand);color:#2b2100;border-radius:999px;padding:1px 7px}
+.node.done{background:var(--land);box-shadow:0 5px 0 color-mix(in srgb, var(--land) 60%, #000)}
+.node.cur{outline:4px solid var(--sand);outline-offset:4px}
+.node.lock{background:var(--lock);box-shadow:0 5px 0 color-mix(in srgb, var(--lock) 60%, #000);cursor:not-allowed}
+.node.boss{width:84px;height:84px;background:var(--heart);box-shadow:0 5px 0 color-mix(in srgb, var(--heart) 60%, #000)}
+.node.boss b{font-size:30px}
+.node:not(:disabled):hover{transform:translateY(-2px) translateX(var(--x,0))}
+.node:not(:disabled):active{transform:translateY(3px)}
+.node.lock span{color:var(--muted)}
+
+/* Lesson */
+.lhead{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.lhead h2{font-size:19px;font-weight:800;flex:1;min-width:0}
+.bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;width:0;background:var(--land);border-radius:999px;transition:width .3s}
+.hearts{display:flex;gap:2px;font-size:20px;color:var(--lock)}
+.hearts .on{color:var(--heart)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.qnum{margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted)}
+.card h3{font-size:21px;font-weight:800;margin-bottom:16px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--bg);cursor:pointer;font-weight:600;font-size:16px;min-height:52px}
+.opt:not(:disabled):hover{border-color:var(--sea)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.resumo{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.resumo ul{margin:0;padding-left:20px}
+.resumo li{margin-bottom:6px}
+.resumo svg{display:block;width:100%;height:auto;max-width:360px;margin:12px auto 0}
+.sheet{position:sticky;bottom:0;margin:16px -16px -12px;padding:16px max(16px, env(safe-area-inset-left,0px)) calc(16px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+.sheet p{margin:0 0 12px}
+.sheet .ok{color:var(--ok)}
+.sheet .bad{color:var(--bad)}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:var(--land);color:#fff;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb, var(--land) 60%, #000)}
+.btn.alt{background:var(--sea);box-shadow:0 4px 0 color-mix(in srgb, var(--sea) 60%, #000)}
+.btn.ghostb{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.stack{display:grid;gap:10px;margin-top:14px}
+
+.essay{width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);resize:vertical;min-height:110px}
+
+/* Result and report */
+.big{font-family:"Bricolage Grotesque",sans-serif;font-size:56px;font-weight:800;margin:0;text-align:center;font-variant-numeric:tabular-nums}
+.center{text-align:center}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td:not(:first-child),th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+.sec{margin-top:18px}
+.sec h3{font-size:18px;font-weight:800;margin-bottom:8px}
+.sec ul{margin:0;padding-left:20px}
+.sec li{margin-bottom:6px}
+.muted{color:var(--muted);font-size:14px}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1>Trilha do Gui</h1>
+    <div class="stats">
+      <span class="pill" title="Pontos de experiência">XP <span id="xp">0</span></span>
+      <span class="pill" title="Dias seguidos estudando">Sequência <span id="streak">0</span></span>
+      <button class="ghost" id="btnHow" type="button">Como funciona</button>
+      <button class="ghost" id="btnAdmin" type="button">Área do adulto</button>
+    </div>
+  </header>
+
+  <!-- ADMIN -->
+  <main id="v-admin" hidden>
+    <div class="lhead">
+      <button class="ghost" id="btnAdminBack" type="button">Voltar</button>
+      <h2>Área do adulto</h2>
+    </div>
+    <div class="card" id="adminGate">
+      <p class="muted" style="margin:0 0 10px">Digite a senha para ver os indicadores.</p>
+      <input id="pw" type="password" inputmode="numeric" placeholder="Senha" style="width:100%;font:inherit;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:10px">
+      <button class="btn" id="btnEnter" type="button">Entrar</button>
+      <p class="muted" id="pwMsg" style="margin:8px 0 0"></p>
+    </div>
+    <div id="adminBody" hidden>
+      <div class="stack" style="margin-top:0"><button class="ghost" id="btnRefresh" type="button">Atualizar dados</button></div>
+      <div id="adminCards" style="margin-top:12px"></div>
+    </div>
+  </main>
+
+  <!-- WELCOME -->
+  <main id="v-welcome" hidden>
+    <div class="card">
+      <h2 style="font-size:24px;font-weight:800;margin-bottom:8px">Falta pouco, e dá tempo de recuperar tudo!</h2>
+      <p style="margin:0 0 12px">Oi! O último bimestre está logo ali, e dá para virar o jogo. Este app serve para descobrir o que você já sabe e o que ainda falta estudar antes da prova. Aqui não tem nota de castigo: é um mapa.</p>
+      <p class="muted" style="margin:0 0 6px">Como funciona:</p>
+      <ol style="margin:0 0 12px;padding-left:20px">
+        <li style="margin-bottom:6px"><b>Trilhas:</b> cada lição tem perguntas sobre a matéria. Errar é normal, e o erro vira revisão.</li>
+        <li style="margin-bottom:6px"><b>Resumo:</b> em cada lição, toque em "Ver resumo" para reler o essencial.</li>
+        <li style="margin-bottom:6px"><b>Trilha Mestre:</b> no final, um simulado sem resumo e sem correção na hora, igualzinho à prova.</li>
+      </ol>
+      <p style="margin:0">Quem chega até aqui já está na frente de muita gente que desistiu. Bora? 😄</p>
+    </div>
+    <div class="stack">
+      <p class="muted" style="margin:0 0 4px">Quem está estudando?</p>
+      <button class="btn" data-aluno="gui" type="button">Sou o Gui</button>
+      <button class="btn alt" data-aluno="livia" type="button">Sou a Lívia</button>
+    </div>
+  </main>
+
+  <!-- TRAIL -->
+  <main id="v-trail">
+    <nav class="subjects" aria-label="Matérias" id="subjects"></nav>
+    <p class="subnote" id="subnote"></p>
+    <div class="stack" style="margin-top:0">
+      <button class="ghost" id="btnReport" type="button">Relatório e avaliação</button>
+    </div>
+    <div id="trail"></div>
+  </main>
+
+  <!-- LESSON -->
+  <main id="v-lesson" hidden>
+    <div class="lhead">
+      <button class="ghost" id="btnExit" type="button">Sair</button>
+      <h2 id="ltitle"></h2>
+      <div class="hearts" id="lhearts" aria-label="Vidas"></div>
+    </div>
+    <div class="bar"><i id="lpbar"></i></div>
+    <div class="card" id="lq"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px">
+      <button class="ghost" id="btnResumo" type="button" aria-expanded="false">Ver resumo</button>
+    </div>
+    <section class="resumo" id="resumo" hidden>
+      <h3 style="font-size:17px;font-weight:800;margin-bottom:8px">Resumo da lição</h3>
+      <div id="resumoBody"></div>
+    </section>
+    <div class="sheet" id="sheet" hidden>
+      <p id="sfeed"></p>
+      <div id="selfgrade" class="stack" hidden>
+        <button class="btn" data-ok="1" type="button">Acertei o essencial</button>
+        <button class="btn ghostb" data-ok="0" type="button">Faltou algo</button>
+      </div>
+      <button class="btn" id="sbtn" type="button">Continuar</button>
+    </div>
+  </main>
+
+  <!-- RESULT -->
+  <main id="v-result" hidden>
+    <div class="card center">
+      <h2 id="rtitle" style="font-size:24px;font-weight:800"></h2>
+      <p class="big" id="rpct"></p>
+      <p class="muted" id="rbody" style="margin:8px 0 0"></p>
+    </div>
+    <div class="card sec" id="rreview" hidden></div>
+    <div class="stack">
+      <button class="btn" id="btnRetry" type="button">Tentar de novo</button>
+      <button class="btn ghostb" id="btnBack" type="button">Voltar à trilha</button>
+    </div>
+  </main>
+
+  <!-- REPORT -->
+  <main id="v-report" hidden>
+    <div class="lhead">
+      <button class="ghost" id="btnBack2" type="button">Voltar</button>
+      <h2>Relatório</h2>
+    </div>
+    <div class="card">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Lição</th><th>Melhor</th><th>Tentativas</th><th>Status</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="sec">
+        <h3>Pontos a melhorar</h3>
+        <ul id="weak"></ul>
+      </div>
+      <div class="sec">
+        <h3>Erros para revisar</h3>
+        <p class="muted" id="mistakeCount" style="margin:0 0 8px"></p>
+        <button class="btn alt" id="btnReview" type="button">Revisar erros</button>
+      </div>
+      <div class="sec">
+        <button class="ghost" id="btnReset" type="button">Zerar progresso</button>
+        <p class="muted" id="resetNote" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+    <div class="card sec">
+      <h3>Mandar o desempenho para o chat</h3>
+      <p class="muted" style="margin:0 0 8px">Copia notas, tentativas e erros para colar aqui.</p>
+      <button class="btn alt" id="btnCopy" type="button">Copiar resumo</button>
+      <p class="muted" id="copyNote" style="margin:6px 0 0"></p>
+      <textarea id="copyBox" class="essay" rows="8" hidden readonly></textarea>
+    </div>
+    <div class="card sec">
+      <h3>Avaliação desta versão (v2)</h3>
+      <p class="muted" style="margin:0 0 8px">O que está bom e o que muda na próxima versão.</p>
+      <ul>
+        <li>Funciona: trilha por unidade, vidas, XP, sequência, resumo e revisão de erros.</li>
+        <li>Conteúdo de Estados Unidos agora vem do livro (Unidade 4, Tema 2).</li>
+        <li>Próxima versão: diagramas de relevo, correntes e climas, feitos com base nos mapas do livro.</li>
+        <li>Próxima versão: questões dissertativas curtas, no estilo das questões 14 e 15 do livro.</li>
+        <li>Próxima versão: as demais matérias na mesma trilha, uma de cada vez.</li>
+      </ul>
+    </div>
+  </main>
+</div>
+
+<script>
+let ALUNO = null;
+const keyFor = a => 'trilha-' + a + '-v1';
+const load = () => { try { return JSON.parse(localStorage.getItem(keyFor(ALUNO))) || {}; } catch (e) { return {}; } };
+const persist = () => { try { localStorage.setItem(keyFor(ALUNO), JSON.stringify(S)); } catch (e) {} };
+let S = { xp: 0, days: [], results: {}, mistakes: [] };
+function setAluno(a){
+  ALUNO = a;
+  S = Object.assign({ xp: 0, days: [], results: {}, mistakes: [], stats: {}, entradas: 0 }, load());
+  S.entradas = (S.entradas || 0) + 1;
+  persist();
+  syncRemote();
+  try { localStorage.setItem('trilha-aluno', a); } catch (e) {}
+}
+function stat(id, ok){
+  if (!id || id === 'review') return;
+  S.stats = S.stats || {};
+  const s = S.stats[id] || { r: 0, t: 0 };
+  s.t++;
+  if (ok) s.r++;
+  S.stats[id] = s;
+}
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const today = () => new Date().toLocaleDateString('sv-SE');
+const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+
+/* ---------- SHARED RESULTS (db): each viewer writes only resultados/<own id> ---------- */
+let db = null, uid = null, syncChain = Promise.resolve();
+const useCap = n => (window.claude && window.claude.use) ? window.claude.use(n) : Promise.resolve(null);
+(async () => {
+  try {
+    db = await useCap('db');
+    const u = await useCap('user');
+    if (u) uid = await u.id();
+  } catch (e) {}
+})();
+function syncRemote(){
+  syncChain = syncChain.then(async () => {
+    try {
+      if (!db || !uid) return;
+      if (!ALUNO) return;
+      await db.doc('resultados/' + uid).set({
+        nome: ALUNO,
+        entradas: S.entradas || 0,
+        stats: S.stats || {},
+        atualizado: new Date().toISOString(),
+        xp: S.xp,
+        sequencia: streak(),
+        resultados: S.results,
+        erros: S.mistakes.map(m => ({ q: m.q, de: m.from, exp: m.exp }))
+      });
+    } catch (e) {}
+  });
+}
+
+/* ---------- CONTENT: GEOGRAFIA, UNIDADE 3 ---------- */
+const SVG_LAT = `<svg viewBox="0 0 340 150" role="img" aria-label="Faixas de latitude e climas">
+  <rect x="6" y="6" width="328" height="64" rx="10" style="fill:var(--line)"/>
+  <text x="170" y="34" text-anchor="middle" style="fill:var(--ink);font:800 15px Figtree,sans-serif">Altas latitudes (norte)</text>
+  <text x="170" y="54" text-anchor="middle" style="fill:var(--muted);font:600 13px Figtree,sans-serif">Climas polar e frio: temperaturas baixas</text>
+  <rect x="6" y="80" width="328" height="64" rx="10" style="fill:var(--land)"/>
+  <text x="170" y="108" text-anchor="middle" style="fill:var(--bg);font:800 15px Figtree,sans-serif">Médias e baixas latitudes</text>
+  <text x="170" y="128" text-anchor="middle" style="fill:var(--bg);font:600 13px Figtree,sans-serif">Climas equatorial e tropical: quentes e úmidos</text>
+</svg>`;
+
+const G3 = [
+  { id:'g3-relevo', title:'Relevo e altitudes',
+    resumo:[
+      'As maiores altitudes estão no oeste, nas cordilheiras (Rochosas e Andes).',
+      'O Aconcágua, nos Andes (Argentina), é o ponto mais alto da América, com 6.960 m.',
+      'O centro do continente é dominado por planícies, como as Grandes Planícies.',
+      'O Escudo Canadense é relevo antigo, de baixas altitudes e rochas cristalinas.',
+      'No mapa físico, o verde-claro indica altitudes de 0 a 200 m.' ],
+    qs:[
+      { q:'As maiores altitudes da América concentram-se em qual parte do continente?', opts:['Leste','Oeste'], a:1,
+        exp:'As cordilheiras do oeste (Rochosas e Andes) concentram as maiores altitudes.' },
+      { q:'Qual é a maior altitude do relevo americano?', opts:['Denali, 6.194 m','Aconcágua, 6.960 m','Huascarán, 6.768 m','Chimborazo, 6.310 m'], a:1,
+        exp:'O Aconcágua, nos Andes argentinos, tem 6.960 m, a maior altitude da América.' },
+      { q:'No centro e no oeste do continente predominam quais formas de relevo?', opts:['Planícies e planaltos','Apenas planícies litorâneas','Vulcões isolados','Geleiras permanentes'], a:0,
+        exp:'No centro estão as Grandes Planícies; no oeste, planaltos e cordilheiras, como as Rochosas e o Planalto do Colorado.' },
+      { q:'O Escudo Canadense é formado por qual tipo de relevo?', opts:['Antigo, de baixas altitudes e rochas cristalinas','Jovem, com vulcões ativos','De dobramentos recentes e muito altos','De planícies sedimentares recentes'], a:0,
+        exp:'Os escudos são áreas antigas e desgastadas, com rochas cristalinas e altitudes baixas.' },
+      { q:'Verdadeiro ou falso: a Planície Amazônica tem altitudes entre 0 e 200 metros.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Na legenda do mapa físico, a faixa verde-clara corresponde a 0 a 200 m, típica das planícies.' }
+    ] },
+  { id:'g3-hidro', title:'Hidrografia',
+    resumo:[
+      'A Bacia Amazônica tem o maior volume de água do mundo.',
+      'O rio Mississippi drena a região central dos Estados Unidos e deságua no Golfo do México.',
+      'O rio Colorado nasce nas Montanhas Rochosas e esculpiu o Grand Canyon.',
+      'Os rios Paraná, Paraguai e Uruguai formam a Bacia do Prata.',
+      'O Orinoco corre pela Venezuela e deságua no Atlântico.' ],
+    qs:[
+      { q:'Qual rio nasce nas Montanhas Rochosas e esculpiu o Grand Canyon?', opts:['Amazonas','Colorado','Orinoco','Paraná'], a:1,
+        exp:'O rio Colorado nasce nas Rochosas e, ao longo de milhões de anos, esculpiu o Grand Canyon.' },
+      { q:'Qual bacia hidrográfica tem o maior volume de água do mundo?', opts:['Amazônica','Mississippi','Prata','Orinoco'], a:0,
+        exp:'A Bacia Amazônica é a maior do mundo em volume de água.' },
+      { q:'Os rios Paraná, Paraguai e Uruguai formam qual bacia?', opts:['Bacia do Prata','Bacia do Mississippi','Bacia do Orinoco','Bacia do Yukon'], a:0,
+        exp:'Esses três rios formam a Bacia do Prata, na América do Sul.' },
+      { q:'Verdadeiro ou falso: o Mississippi drena o centro dos EUA e deságua no Golfo do México.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'O Mississippi corta o centro dos Estados Unidos e deságua no Golfo do México.' },
+      { q:'O rio Orinoco deságua em qual oceano?', opts:['Atlântico','Pacífico','Glacial Ártico','Índico'], a:0,
+        exp:'O Orinoco corre pela Venezuela e deságua no Atlântico.' }
+    ] },
+  { id:'g3-lat', title:'Latitude e clima', svg:SVG_LAT,
+    resumo:[
+      'Climas polares e frios ocorrem nas altas latitudes, no extremo norte do continente.',
+      'Climas equatorial e tropical ocorrem em médias e baixas latitudes, como na América Central e na América do Sul.',
+      'Altitude também altera o clima: o clima frio de montanha aparece nos Andes e nas Rochosas.',
+      'As cadeias de montanhas do oeste barram a umidade do Pacífico, o que ajuda a explicar climas semiáridos e desérticos nos EUA e no México.',
+      'A friagem é uma massa de ar frio vinda das regiões polares, que chega à Amazônia pelas planícies Platina e do Pantanal.' ],
+    qs:[
+      { q:'Os climas polares e frios ocorrem em qual faixa de latitude?', opts:['Altas latitudes','Baixas latitudes','Apenas no litoral','Somente nas planícies'], a:0,
+        exp:'Os climas polares e frios aparecem no extremo norte, em altas latitudes.' },
+      { q:'Onde se encontram os climas equatorial e tropical?', opts:['Altas latitudes do norte','Médias e baixas latitudes, como América Central e América do Sul','Somente no Canadá','Acima de 4.000 m de altitude'], a:1,
+        exp:'Esses climas quentes e úmidos estão em médias e baixas latitudes.' },
+      { q:'O clima frio de montanha, mesmo em baixas latitudes, é explicado principalmente por:', opts:['Altitude','Proximidade com o mar','Ausência de chuvas','Correntes quentes'], a:0,
+        exp:'A altitude reduz as temperaturas, por isso Andes e Rochosas têm clima frio de montanha.' },
+      { q:'A friagem na Amazônia é causada por:', opts:['Massas de ar frias vindas das regiões polares','Vulcões','Seca prolongada na Amazônia','Correntes marítimas quentes'], a:0,
+        exp:'As massas de ar polares chegam pelo sul, pelas planícies Platina e do Pantanal, e às vezes atingem a Amazônia.' },
+      { q:'Verdadeiro ou falso: as cadeias de montanhas do oeste barram a umidade vinda do Pacífico, o que ajuda a explicar climas secos nos EUA e no México.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Essas montanhas impedem a passagem das massas de ar úmidas, deixando o interior mais seco.' }
+    ] },
+  { id:'g3-corr', title:'Correntes marítimas',
+    resumo:[
+      'Correntes quentes elevam a temperatura e a umidade do ar.',
+      'Correntes frias reduzem a evaporação, a umidade e as chuvas, e podem formar desertos.',
+      'A Corrente do Golfo, quente e formada no Golfo do México, ameniza o frio da costa norte-americana.',
+      'A Corrente de Humboldt (ou do Peru), fria, contribui para o deserto do Atacama.',
+      'No Atacama, a Cordilheira dos Andes também bloqueia a umidade vinda da Amazônia.' ],
+    qs:[
+      { q:'A Corrente do Golfo, formada no Golfo do México, é:', opts:['Quente, e ameniza o clima da costa norte-americana','Fria, e causa neve no Caribe','Fria, e origina o deserto do Atacama','Quente, e causa a seca do Atacama'], a:0,
+        exp:'É uma corrente quente que suaviza as temperaturas frias da costa dos EUA até a Noruega.' },
+      { q:'A Corrente de Humboldt, na costa oeste da América do Sul, contribui para:', opts:['A formação do deserto do Atacama','O clima equatorial da Amazônia','A friagem','As chuvas da Caatinga'], a:0,
+        exp:'Por ser fria, ela reduz a evaporação e a chance de chuva na costa do Chile e do Peru.' },
+      { q:'Por que correntes frias favorecem climas secos?', opts:['Diminuem a evaporação e, com isso, a umidade e as chuvas','Aumentam a temperatura do ar','Formam furacões','Elevam o nível dos rios'], a:0,
+        exp:'Com menos evaporação, o ar fica menos úmido e chove menos.' },
+      { q:'Além da corrente fria, a seca do deserto do Atacama é reforçada pela:', opts:['Cordilheira dos Andes, que bloqueia a umidade da Amazônia','Corrente do Golfo','Friagem','Planície Platina'], a:0,
+        exp:'A cordilheira barra as massas de ar úmidas que vêm da Amazônia.' },
+      { q:'Verdadeiro ou falso: correntes quentes podem elevar a temperatura e a umidade do ar das áreas costeiras.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Correntes quentes aquecem o ar e aumentam a umidade, como a Corrente do Golfo faz.' }
+    ] },
+  { id:'g3-veg', title:'Vegetação',
+    resumo:[
+      'Floresta tropical úmida: sempre verde, densa, com a maior biodiversidade terrestre, em clima equatorial.',
+      'Savana (cerrado no Brasil): vegetação variada e estação seca bem definida.',
+      'Estepe: pastagens naturais de plantas herbáceas, como os pampas e as pradarias.',
+      'Taiga: coníferas adaptadas a invernos longos e rigorosos.',
+      'Tundra: plantas rasteiras, como liquens, algas e musgos, com solos congelados.',
+      'Floresta temperada: árvores decíduas que perdem as folhas no inverno, com outono colorido.' ],
+    qs:[
+      { q:'Vegetação sempre verde, densa e com a maior biodiversidade terrestre, ligada a climas equatoriais:', opts:['Savana','Floresta tropical úmida','Estepe','Tundra'], a:1,
+        exp:'A floresta tropical úmida é sempre verde e abriga a maior parte da biodiversidade do planeta.' },
+      { q:'Vegetação rasteira de liquens, algas e musgos, típica do clima polar:', opts:['Taiga','Tundra','Floresta temperada','Savana'], a:1,
+        exp:'Na tundra, o solo fica congelado boa parte do ano, e as plantas são rasteiras.' },
+      { q:'A paisagem de coníferas em invernos longos, no norte do Canadá, é a:', opts:['Taiga','Savana','Floresta tropical úmida','Estepe'], a:0,
+        exp:'A taiga é adaptada ao clima frio, e as coníferas se destacam na paisagem.' },
+      { q:'Árvores que perdem as folhas no inverno (decíduas) caracterizam:', opts:['Floresta temperada','Floresta tropical úmida','Floresta subtropical perenifólia','Tundra'], a:0,
+        exp:'Na floresta temperada, as árvores perdem as folhas no inverno e ficam coloridas no outono.' },
+      { q:'O cerrado brasileiro corresponde a qual formação vegetal?', opts:['Savana','Taiga','Tundra','Estepe'], a:0,
+        exp:'O cerrado é a savana brasileira: vegetação variada, com estação seca bem marcada.' },
+      { q:'Na estepe, como nos pampas sul-americanos, destacam-se:', opts:['Plantas herbáceas em pastagens naturais','Árvores de grande porte','Musgos e liquens','Coníferas'], a:0,
+        exp:'As estepes são extensas áreas de pastagens naturais, com predomínio de plantas herbáceas.' },
+      { q:'Verdadeiro ou falso: a vegetação nativa da América foi bastante devastada para dar lugar a cidades, agricultura e pastagens.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'O avanço de cidades, agricultura, pastagens, estradas e hidrelétricas reduziu bastante a vegetação original.' }
+    ] }
+];
+
+/* ---------- CONTENT: ESTADOS UNIDOS, UNIDADE 4 (base: páginas 116 a 122 do livro) ---------- */
+const G4 = [
+  { id:'g4-terr', title:'Território e organização',
+    resumo:[
+      'Os EUA têm 50 estados e um Distrito Federal, onde fica a capital, Washington D.C.',
+      'A área é de 9.833.517 km², o terceiro maior país do mundo, atrás de Rússia e Canadá.',
+      'Alasca (comprado da Rússia em 1867) e Havaí (anexado em 1898) não fazem fronteira com outros estados.',
+      'Os EUA são uma federação: cada estado tem autonomia e leis próprias, como a idade mínima para dirigir (16 ou 18 anos).' ],
+    qs:[
+      { q:'A capital dos Estados Unidos é:', opts:['Nova York','Washington D.C.','Los Angeles','Boston'], a:1,
+        exp:'Washington D.C. é a capital federal, localizada no Distrito Federal.' },
+      { q:'Como o território dos EUA é organizado?', opts:['50 estados e um Distrito Federal','48 estados e dois territórios','30 províncias','52 estados iguais'], a:0,
+        exp:'São 50 unidades federativas (estados) e o Distrito Federal, onde fica a capital.' },
+      { q:'Os dois estados que não fazem fronteira com outro estado são:', opts:['Alasca e Havaí','Texas e Flórida','Califórnia e Oregon','Nevada e Utah'], a:0,
+        exp:'O Alasca fica no noroeste do continente e o Havaí é um arquipélago no Pacífico.' },
+      { q:'Os EUA são uma federação porque:', opts:['Os estados têm autonomia e leis próprias','Existe um único governo estadual','O país é formado por uma só cidade','Não há constituição'], a:0,
+        exp:'Em uma federação, os estados têm autonomia política e leis próprias, como a idade mínima para dirigir.' },
+      { q:'Verdadeiro ou falso: o Alasca foi comprado da Rússia em 1867.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'O Alasca foi vendido pela Rússia aos EUA em 1867.' }
+    ] },
+  { id:'g4-pop', title:'Dinâmica populacional',
+    resumo:[
+      'Em 2024, a ONU estimou cerca de 345 milhões de habitantes nos EUA, o terceiro país mais populoso do mundo, atrás de Índia e China.',
+      'As maiores concentrações estão no nordeste, na região dos Grandes Lagos e na Costa Oeste.',
+      'Megalópoles são grandes regiões urbanizadas formadas pela junção de duas ou mais metrópoles.',
+      'As principais são BosWash (Boston a Washington D.C.), ChiPitts (Chicago a Pittsburgh) e SanSan (San Francisco a San Diego).',
+      'Na Costa Oeste, destacam-se Seattle, Portland, Sacramento, San Francisco, Los Angeles e San Diego.' ],
+    qs:[
+      { q:'Em 2024, a população dos EUA ocupava qual posição mundial?', opts:['1ª','2ª','3ª','5ª'], a:2,
+        exp:'Os EUA tinham a terceira maior população do planeta, atrás de Índia e China.' },
+      { q:'Onde está a maior concentração populacional dos EUA?', opts:['Nordeste, Grandes Lagos e Costa Oeste','Centro, nas Montanhas Rochosas','Alasca','Sul do Havaí'], a:0,
+        exp:'A população se concentra no nordeste, nos Grandes Lagos e na Costa Oeste.' },
+      { q:'Megalópole é:', opts:['Região urbanizada formada pela junção de duas ou mais metrópoles','Cidade com menos de 10 mil habitantes','Parque nacional protegido','Porto de exportação de petróleo'], a:0,
+        exp:'Megalópole é a junção de duas ou mais metrópoles, como BosWash e ChiPitts.' },
+      { q:'Qual megalópole liga Boston a Washington D.C.?', opts:['BosWash','ChiPitts','SanSan','Megalópole do Alasca'], a:0,
+        exp:'BosWash reúne a região de Boston até Washington D.C., incluindo Nova York no caminho.' },
+      { q:'Verdadeiro ou falso: a população dos EUA está distribuída de forma uniforme pelo território.', opts:['Verdadeiro','Falso'], a:1,
+        exp:'Há grandes vazios populacionais, como o interior das Grandes Planícies e o Alasca.' }
+    ] },
+  { id:'g4-form', title:'Formação e expansão',
+    resumo:[
+      'As Treze Colônias inglesas originaram os EUA. As do Norte eram de povoamento (batata, trigo, cevada); as do Sul, de exploração (algodão e tabaco).',
+      'A Festa do Chá de Boston foi um protesto contra os impostos ingleses, que levou à independência em 1776.',
+      'O Destino Manifesto dizia que os estadunidenses teriam direito divino de ocupar as terras entre o Atlântico e o Pacífico.',
+      'Essa expansão se deu por compras (França, Espanha), tratados (Inglaterra) e guerras, e causou conflitos, expulsão e genocídio de indígenas.' ],
+    qs:[
+      { q:'Qual protesto está ligado à independência dos EUA?', opts:['Festa do Chá de Boston','Tratado de Tordesilhas','Guerra do Golfo','Compra do Alasca'], a:0,
+        exp:'Em Boston, os colonos protestaram contra os impostos ingleses, o que levou à independência em 1776.' },
+      { q:'As colônias do Norte eram principalmente de:', opts:['Povoamento, com cultivo de batata, trigo e cevada','Exploração, com algodão e tabaco','Mineração de ouro','Pesca de baleias'], a:0,
+        exp:'No Norte, as colônias de povoamento tinham uma economia mais independente da Inglaterra.' },
+      { q:'As colônias do Sul eram de exploração, com cultivo de:', opts:['Algodão e tabaco','Batata e trigo','Soja','Café'], a:0,
+        exp:'O Sul dependia do mercado inglês e produzia algodão e tabaco.' },
+      { q:'O Destino Manifesto justificava:', opts:['A expansão para o oeste, com a ideia de superioridade anglo-saxã','O fim da escravidão','A criação da ONU','A independência do Havaí'], a:0,
+        exp:'A doutrina usava a ideia de superioridade anglo-saxã para justificar a expansão territorial.' },
+      { q:'Verdadeiro ou falso: o Alasca foi comprado da Rússia em 1867, e o Havaí foi anexado em 1898.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Essas foram as últimas grandes incorporações territoriais dos EUA.' }
+    ] },
+  { id:'g4-etnia', title:'Composição étnica',
+    resumo:[
+      'No Censo de 2023, os brancos não hispânicos eram 58,4% da população.',
+      'Hispânicos eram 19,5%, negros ou afro-americanos 13,7%, asiáticos 6,4% e indígenas 1,3%.',
+      'Em 2060, a projeção é de 44,3% de brancos, 27,5% de hispânicos, 15% de negros e 9,1% de asiáticos.',
+      'Hispânico é o termo usado para pessoas latino-americanas ou seus descendentes.',
+      'Até 2060, hispânicos e asiáticos devem crescer, enquanto a participação dos brancos cai.' ],
+    qs:[
+      { q:'Segundo o Censo de 2023, o maior grupo étnico dos EUA era:', opts:['Branco não hispânico (cerca de 58,4%)','Hispânico (19,5%)','Negro (13,7%)','Asiático (6,4%)'], a:0,
+        exp:'Brancos não hispânicos eram 58,4% da população em 2023.' },
+      { q:'Quais grupos devem crescer até 2060?', opts:['Hispânicos e asiáticos, principalmente','Somente brancos','Somente indígenas','Nenhum grupo'], a:0,
+        exp:'Hispânicos passam de 19,5% para 27,5%, e asiáticos de 6,4% para 9,1%.' },
+      { q:'O termo hispânico, nos EUA, designa:', opts:['Pessoas latino-americanas ou descendentes delas','Pessoas da Europa Oriental','Apenas nativos do Havaí','Pessoas de origem árabe'], a:0,
+        exp:'O livro usa o termo para classificar pessoas latino-americanas ou descendentes.' },
+      { q:'Verdadeiro ou falso: a participação de brancos não hispânicos deve cair entre 2023 e 2060.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'A projeção vai de 58,4% em 2023 para 44,3% em 2060.' }
+    ] },
+  { id:'g4-imig', title:'Imigração',
+    resumo:[
+      'No século XIX, europeus como irlandeses, alemães, ingleses e italianos foram fundamentais para ocupar o Oeste.',
+      'O Homestead Act vendia terras a preços simbólicos, o que atraiu muitos imigrantes europeus.',
+      'A migração hispânica começou nos anos 1940, com mexicanos em trabalhos temporários no Texas, na Califórnia e no Arizona.',
+      'Nos anos 1960 e 1970, chegaram cubanos e porto-riquenhos; nos anos 1980, imigrantes da América Central e da América do Sul.',
+      'Hoje, a fronteira com o México é um ponto de grande tensão política, com fiscalização e deportações.' ],
+    qs:[
+      { q:'No século XIX, a ocupação do Oeste contou muito com imigrantes:', opts:['Europeus, como irlandeses, alemães, ingleses e italianos','Japoneses','Russos','Australianos'], a:0,
+        exp:'A imigração europeia foi fundamental para ocupar os territórios conquistados no Oeste.' },
+      { q:'O Homestead Act (Lei de Propriedade Rural) permitia:', opts:['Comprar terras a preços simbólicos','Proibir a entrada de estrangeiros','Criar cidades flutuantes','Vender o Alasca à Rússia'], a:0,
+        exp:'A lei vendia terras a preços simbólicos aos interessados, atraindo muitos imigrantes europeus.' },
+      { q:'A migração hispânica para os EUA começou com:', opts:['Mexicanos, nos anos 1940, para trabalhos temporários','Cubanos, nos anos 1800','Peruanos, nos anos 1920','Brasileiros, nos anos 1960'], a:0,
+        exp:'Os mexicanos chegaram nos anos 1940 para trabalhos temporários em Texas, Califórnia e Arizona.' },
+      { q:'Nos anos 1980, a migração para os EUA passou a incluir principalmente imigrantes de:', opts:['América Central e América do Sul','Europa Oriental','Ásia Central','Oceania'], a:0,
+        exp:'Nos anos 1980, chegaram imigrantes da América Central e da América do Sul.' },
+      { q:'Verdadeiro ou falso: imigração é a entrada de pessoas em um país, e emigração é a saída.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Imigração e emigração diferem pela direção do movimento.' }
+    ] },
+  { id:'g4-pol', title:'Políticas migratórias',
+    resumo:[
+      'No início do século XXI, as leis migratórias dos EUA ficaram mais restritivas, sobretudo para imigrantes muçulmanos e latino-americanos.',
+      'O primeiro governo Trump (2017-2021) ampliou o muro na fronteira com o México, suspendeu a admissão de refugiados e proibiu a entrada de cidadãos de países como Irã, Sudão, Síria, Líbia, Somália, Iêmen e Iraque.',
+      'A política de "tolerância zero" (2018) passou a processar criminalmente quem tentava atravessar a fronteira sem documentos.',
+      'Mais de 2 mil crianças e adolescentes foram encaminhados a abrigos e separados das famílias, o que gerou protestos mundiais.',
+      'Pela Convenção sobre os Direitos da Criança (1990), nenhuma criança deve ser privada de liberdade de forma ilegal ou arbitrária.' ],
+    qs:[
+      { q:'A política marcante do primeiro governo Trump em relação à imigração foi:', opts:['Tolerância zero e ampliação do muro','Abertura total das fronteiras','Fim da imigração latino-americana','Anistia para todos os imigrantes'], a:0,
+        exp:'O governo ampliou o muro com o México e aplicou a política de tolerância zero, que processava quem entrava sem documentos.' },
+      { q:'A ampliação do muro ocorreu na fronteira com qual país?', opts:['Canadá','México','Cuba','Brasil'], a:1,
+        exp:'O muro foi ampliado na fronteira com o México.' },
+      { q:'Por que crianças foram separadas de suas famílias na fronteira?', opts:['Os adultos foram processados, e as crianças foram encaminhadas a abrigos','As famílias pediram para ser separadas','As crianças não podem atravessar fronteiras','Os abrigos não aceitam famílias'], a:0,
+        exp:'Como os adultos foram processados criminalmente, as crianças, que não podem permanecer com eles nessa situação, foram enviadas a abrigos.' },
+      { q:'Verdadeiro ou falso: Joe Biden conseguiu anular a lei anti-imigração em 2021.', opts:['Verdadeiro','Falso'], a:1,
+        exp:'Biden pediu a anulação, mas o pedido foi negado pela Justiça.' },
+      { q:'Qual documento internacional de 1990 protege os direitos das crianças?', opts:['Convenção sobre os Direitos da Criança','Tratado de Tordesilhas','Carta da ONU de 1945','Declaração de Independência dos EUA'], a:0,
+        exp:'A Convenção sobre os Direitos da Criança foi assinada em 1990 por quase todos os países do mundo.' }
+    ] },
+  { id:'g4-prec', title:'Preconceito e xenofobia',
+    resumo:[
+      'A escravidão de africanos começou em 1619, na antiga colônia da Virgínia, e as leis de segregação racial duraram até meados dos anos 1950.',
+      'Os movimentos de direitos civis lutaram pela igualdade, como na marcha de Selma e Montgomery, em 1965.',
+      'Mesmo após os avanços, os afro-americanos têm menos acesso à educação e à saúde, salários menores, menor representação política e mais violência policial.',
+      'Xenofobia é a hostilidade contra estrangeiros, que aparece em discriminação no trabalho, na moradia e em discursos de ódio.',
+      'Políticas de integração e respeito à diversidade ajudam a reduzir o preconceito.' ],
+    qs:[
+      { q:'A segregação racial legal nos EUA perdurou até:', opts:['Meados dos anos 1950','Século XVIII','Ano 2000','Início do século XX'], a:0,
+        exp:'As leis de segregação racial só começaram a cair com os movimentos pelos direitos civis, a partir de meados dos anos 1950.' },
+      { q:'A marcha de Selma, em 1965, tinha como objetivo:', opts:['Garantir a igualdade de direitos civis','Pedir a independência do Havaí','Defender a expansão para o Oeste','Protestar contra imigrantes europeus'], a:0,
+        exp:'Foi uma marcha pacifista pela igualdade de direitos, realizada em Selma e Montgomery, no Alabama.' },
+      { q:'Mesmo após os avanços, os afro-americanos ainda têm:', opts:['Menos acesso à educação e à saúde, e salários menores','Mais acesso à educação que a média nacional','Renda acima da média','Representação política igual à média'], a:0,
+        exp:'O livro aponta desigualdades em educação, saúde, renda, representação política e violência policial.' },
+      { q:'Xenofobia é:', opts:['Hostilidade contra estrangeiros','Amor por viagens','Uma política de cotas','Interesse por idiomas'], a:0,
+        exp:'Xenofobia é a rejeição ou o medo de pessoas de outros países.' },
+      { q:'Verdadeiro ou falso: a escravidão de africanos nos EUA começou em 1619, na antiga colônia da Virgínia.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Os primeiros africanos escravizados foram levados à Virgínia em 1619.' }
+    ] },
+  { id:'g4-cult', title:'Influência cultural',
+    resumo:[
+      'A influência dos EUA aparece na alimentação, no idioma, na moda e nos serviços, difundidos pela mídia e pelas multinacionais.',
+      'A salsicha é de origem alemã; nos EUA virou o hot dog (cachorro-quente), que se espalhou pelo mundo a partir dos anos 1950.',
+      'O Halloween, com o "doces ou travessuras", é celebrado por crianças brasileiras.',
+      'Palavras da língua inglesa entram no vocabulário brasileiro e, em textos escritos, costumam ser grafadas em itálico.',
+      'O Samba do Approach, de Zeca Baleiro, critica o uso excessivo de palavras estrangeiras.' ],
+    qs:[
+      { q:'O hot dog (cachorro-quente) tem origem:', opts:['Alemã','Estadunidense','Francesa','Japonesa'], a:0,
+        exp:'A salsicha é de origem alemã, e se popularizou nos EUA como hot dog.' },
+      { q:'Como a influência cultural dos EUA se espalha pelo mundo?', opts:['Pelos meios de comunicação e pelas multinacionais','Somente por tratados militares','Apenas pelo turismo','Pela Constituição'], a:0,
+        exp:'A mídia e as multinacionais difundem hábitos, produtos e modos de vida estadunidenses.' },
+      { q:'O Halloween, com o "doces ou travessuras", é:', opts:['Uma tradição de origem estadunidense, presente no Brasil','Uma festa tradicional indígena','Um feriado nacional brasileiro','Uma festa típica da Ásia'], a:0,
+        exp:'É uma tradição de origem estadunidense que chegou ao Brasil pela influência cultural.' },
+      { q:'Em textos escritos, palavras de língua estrangeira costumam aparecer:', opts:['Em itálico','Sempre em negrito','Entre aspas e em maiúsculas','Sublinhadas'], a:0,
+        exp:'Palavras estrangeiras costumam ser grafadas em itálico.' },
+      { q:'Verdadeiro ou falso: o trecho do Samba do Approach faz uma crítica ao uso de palavras estrangeiras.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'A música critica o excesso de palavras em inglês no vocabulário brasileiro.' }
+    ] }
+];
+
+/* ---------- CONTENT: DESAFIOS DOS EXERCÍCIOS DO LIVRO (Unidade 4; Canadá fora da prova) ---------- */
+const EX = [
+  { id:'ex-mapa', title:'Mapa e território',
+    resumo:[
+      'Os EUA fazem fronteira com o Canadá, ao norte, e com o México, ao sul.',
+      'O território é banhado pelo Atlântico, a leste, e pelo Pacífico, a oeste. O Alasca também toca o Ártico.',
+      'O Alasca (noroeste do continente) e o Havaí (arquipélago no Pacífico) não fazem fronteira com outros estados, por isso aparecem separados no mapa.' ],
+    qs:[
+      { q:'Quais países fazem fronteira com os EUA?', opts:['Canadá e México','Brasil e Canadá','México e Cuba','Canadá e Groenlândia'], a:0,
+        exp:'Os EUA fazem fronteira com o Canadá, ao norte, e com o México, ao sul.' },
+      { q:'Quais oceanos banham o território dos EUA?', opts:['Atlântico e Pacífico','Índico e Pacífico','Atlântico e Índico','Ártico e Índico'], a:0,
+        exp:'O Atlântico banha a leste e o Pacífico, a oeste. O Alasca também toca o Ártico.' },
+      { essay:true, q:'Cite dois estados que fazem fronteira com o Canadá e dois com o México.',
+        ref:'Com o Canadá: por exemplo Washington, Michigan, Nova York ou Maine. Com o México: por exemplo Califórnia, Arizona, Novo México ou Texas.' },
+      { essay:true, q:'Por que o Alasca e o Havaí aparecem separados dos demais estados no mapa?',
+        ref:'Porque não fazem fronteira com os outros estados: o Alasca fica no noroeste do continente, e o Havaí é um arquipélago no Pacífico.' }
+    ] },
+  { id:'ex-org', title:'Organização do espaço',
+    resumo:[
+      'O mapa "EUA: organização do espaço" mostra as regiões Nordeste, Planície Central, Sun Belt, Oeste e o espaço integrado com dinamismo transfronteiriço.',
+      'O Nordeste concentra polos de decisão e comando de influência mundial, com a região dos Grandes Lagos.',
+      'As cidades mais importantes estão no Nordeste, na região dos Grandes Lagos e na Costa Oeste.',
+      'O Sun Belt é um espaço dinâmico e atrativo, no Sul do país.' ],
+    qs:[
+      { essay:true, q:'Quais regiões econômicas dos EUA aparecem no mapa de organização do espaço?',
+        ref:'Nordeste (polos de decisão e comando), Planície Central (periferia integrada ao centro), Sun Belt (espaço dinâmico e atrativo), Oeste (pouco povoado, dinamismo localizado) e o espaço integrado com dinamismo transfronteiriço.' },
+      { essay:true, q:'Em quais regiões concentram-se as cidades mais importantes dos EUA?',
+        ref:'No Nordeste, na região dos Grandes Lagos e na Costa Oeste, onde estão as metrópoles de maior influência.' },
+      { essay:true, q:'Quais são as principais atividades econômicas desenvolvidas no Nordeste e no Sun Belt?',
+        ref:'Nordeste: polos de decisão e comando, com atividades de influência mundial. Sun Belt: economia dinâmica e atrativa, com indústria e serviços em crescimento.' },
+      { q:'O que é o Sun Belt?', opts:['Espaço dinâmico e atrativo no Sul do país','Região de montanhas no Oeste','Área de planícies do centro','Porto no Alasca'], a:0,
+        exp:'O Sun Belt é um espaço dinâmico e atrativo, no Sul do território.' }
+    ] },
+  { id:'ex-expansao', title:'Expansão e domínio',
+    resumo:[
+      'Os EUA ampliaram o território por compras (Alasca, da Rússia, em 1867), tratados e anexações (Havaí, em 1898).',
+      'O Destino Manifesto foi a justificativa ideológica para a expansão.',
+      'A posição entre dois oceanos e o poder militar e econômico ajudaram a ampliar a influência dos EUA pelo mundo.' ],
+    qs:[
+      { essay:true, q:'Quais fatores contribuíram para o domínio de territórios pelos estadunidenses ao redor do mundo?',
+        ref:'Posição geopolítica entre dois oceanos, grande território e recursos, poder militar e econômico, compra e anexação de territórios, tratados e intervenções.' },
+      { essay:true, q:'Quais regiões do globo os EUA privilegiaram para expandir seus domínios?',
+        ref:'O Caribe, a América Central e o Pacífico, com ilhas e arquipélagos estratégicos.' },
+      { essay:true, q:'Cite duas ilhas ou arquipélagos do Pacífico dominados ou anexados pelos EUA no final do século XIX.',
+        ref:'Havaí (anexado em 1898), Filipinas e Guam.' },
+      { q:'Qual país vendeu o Alasca aos EUA em 1867?', opts:['Rússia','Canadá','Espanha','México'], a:0,
+        exp:'A Rússia vendeu o Alasca aos EUA em 1867.' }
+    ] },
+  { id:'ex-bush', title:'Política externa',
+    resumo:[
+      'A "Guerra contra o Terror" começou após os atentados de 11 de setembro de 2001, com a justificativa de combater a Al-Qaeda e outros grupos terroristas.',
+      'Intervenções militares e sanções políticas e econômicas são instrumentos da política externa dos EUA.',
+      'Essas ações geraram conflitos, instabilidade e críticas no plano internacional.' ],
+    qs:[
+      { essay:true, q:'Quais ações o governo Bush tomou na "Guerra contra o Terror"?',
+        ref:'Intervenções militares (como no Afeganistão e no Iraque), combate a grupos terroristas como a Al-Qaeda, sanções e medidas de segurança e vigilância.' },
+      { essay:true, q:'Quais foram as principais consequências dessas ações no plano internacional?',
+        ref:'Conflitos e instabilidade no Oriente Médio, críticas à violação de direitos humanos e à atuação unilateral, e desgaste da imagem dos EUA.' },
+      { q:'Quem venceu as eleições presidenciais dos EUA em novembro de 2024?', opts:['Donald Trump','Joe Biden','Barack Obama','Hillary Clinton'], a:0,
+        exp:'Donald Trump venceu em novembro de 2024. Ele é a personagem da charge "A era da incerteza".' },
+      { essay:true, q:'Na charge "A era da incerteza", quem é a personagem e por que seu nome voltou a ser associado a incertezas?',
+        ref:'Donald Trump. Ele voltou ao poder com a vitória em novembro de 2024, e suas posições em comércio, imigração e política externa geram incertezas no cenário global.' }
+    ] },
+  { id:'ex-imig', title:'Imigração e direitos',
+    resumo:[
+      'A imigração foi essencial para ocupar o território e para o trabalho nas indústrias, na agricultura e nas ferrovias.',
+      'As travessias ilegais são motivadas por pobreza, violência, crises políticas e pela busca por emprego.',
+      'Medo e preconceito podem levar à discriminação e à violação de direitos humanos, como a separação de famílias.' ],
+    qs:[
+      { essay:true, q:'Qual foi o papel das imigrações na história dos EUA?',
+        ref:'Ocupação do território, desenvolvimento econômico e mão de obra para indústrias, agricultura e ferrovias, formando uma sociedade multiétnica.' },
+      { essay:true, q:'Quais motivos levam pessoas a arriscar a vida em travessias ilegais, como na fronteira entre México e EUA?',
+        ref:'Fuga da pobreza, da violência e de crises políticas e econômicas nos países de origem, e a busca por emprego e melhores condições de vida.' },
+      { essay:true, q:'Como o medo e o preconceito podem levar ao descumprimento dos direitos humanos?',
+        ref:'Geram discriminação, xenofobia e violência, e podem levar a políticas que separam famílias ou restringem direitos básicos.' },
+      { essay:true, q:'Segundo os artigos 16 e 37 da Convenção sobre os Direitos da Criança, quais direitos das crianças separadas de suas famílias foram violados?',
+        ref:'Direito à vida privada e familiar (art. 16), à proteção contra tratamento cruel ou degradante e à liberdade, com detenção apenas como último recurso e pelo menor tempo possível (art. 37).' },
+      { essay:true, q:'Pesquise a situação atual da lei anti-imigração e diga como são tratados os imigrantes irregulares nos EUA.',
+        ref:'Resposta de pesquisa: use fontes confiáveis e atuais, cite a fonte e compare com a política de tolerância zero e com as mudanças de governo.' }
+    ] },
+  { id:'ex-cultura', title:'Cultura e influência',
+    resumo:[
+      'A influência cultural dos EUA chega ao Brasil por meios de comunicação, multinacionais, música e cinema.',
+      'Em textos escritos, palavras estrangeiras costumam ser grafadas em itálico.',
+      'Essa influência pode ser vista como positiva ou negativa, dependendo de como é discutida.' ],
+    qs:[
+      { q:'Quem é o autor do Samba do Approach?', opts:['Zeca Baleiro','Chico Buarque','Caetano Veloso','Gilberto Gil'], a:0,
+        exp:'O Samba do Approach é de Zeca Baleiro.' },
+      { essay:true, q:'Escolha um aspecto da influência dos EUA no Brasil (música, cinema, economia ou alimentação). Explique como ele aparece no seu dia a dia e se você o considera positivo ou negativo.',
+        ref:'Resposta pessoal: cite um exemplo concreto e justifique se a influência é positiva ou negativa.' }
+    ] }
+];
+const EX_SUMMARY_NOTE = '';
+
+function summaryText(){
+  const lines = ['Trilha do Gui: resumo de desempenho', `XP: ${S.xp} | Sequência: ${streak()} dia(s)`, ''];
+  GEO_UNITS.forEach(u => {
+    lines.push(`${u.sub} · ${u.title}`);
+    [...u.lessons, u.boss].forEach(n => {
+      const r = S.results[n.id];
+      lines.push(`- ${n.title}: ${r ? r.best + '%' : 'não feita'}, ${r ? r.attempts : 0} tentativa(s), ${r?.done ? 'concluída' : 'pendente'}`);
+    });
+    lines.push('');
+  });
+  lines.push(`Erros guardados para revisão (${S.mistakes.length}):`);
+  S.mistakes.forEach(m => lines.push(`- [${m.from}] ${m.q}`));
+  return lines.join('\n');
+}
+
+const mkBoss = (lessons, id, title) => ({ id, title, boss:true, resumo: lessons.flatMap(l => l.resumo), qs: shuffle(lessons.flatMap(l => l.qs)).slice(0, 8) });
+const ALL_MC = [...G3, ...G4, ...EX].flatMap(l => l.qs).filter(q => !q.essay);
+
+const GEO_UNITS = [
+  { id:'u3', sub:'Unidade 3 · Tema 4 · Prova 19/10', title:'América: aspectos naturais', lessons:G3, boss:mkBoss(G3,'g3-boss','Simulado: América') },
+  { id:'u4', sub:'Unidade 4 · Tema 2 · Prova 19/10', title:'Estados Unidos', lessons:G4, boss:mkBoss(G4,'g4-boss','Simulado: Estados Unidos') },
+  { id:'u5', sub:'Desafios · Exercícios do livro, Unidade 4', title:'Exercícios do livro', lessons:EX, boss:mkBoss(EX,'ex-boss','Simulado: exercícios do livro') },
+  { id:'mestre', sub:'Trilha Mestre · simulado final', title:'Simulado da prova', lessons:[], boss:{ id:'mestre-boss', title:'Trilha Mestre', boss:true, mestre:true, resumo:[], qs: shuffle(ALL_MC).slice(0, 20) } }
+];
+const SUBJECTS = [
+  { id:'geo', name:'Geografia', active:true },
+  { id:'mat', name:'Matemática', active:false },
+  { id:'por', name:'Português', active:false },
+  { id:'ing', name:'Inglês', active:false },
+  { id:'his', name:'História', active:false },
+  { id:'cie', name:'Ciências', active:false },
+  { id:'esp', name:'Espanhol', active:false },
+  { id:'red', name:'Redação', active:false }
+];
+let currentSubject = 'geo';
+const FLAT = GEO_UNITS.flatMap(u => [...u.lessons, u.boss]);
+
+/* ---------- PROGRESS ---------- */
+const done = id => !!S.results[id]?.done;
+const best = id => S.results[id]?.best ?? null;
+const US_START = FLAT.indexOf(G4[0]);
+const unlocked = i => i === 0 || done(FLAT[i-1].id) || (!!S.openUS && i === US_START);
+function streak(){
+  let n = 0; const d = new Date();
+  if (!S.days.includes(today())) d.setDate(d.getDate() - 1);
+  while (S.days.includes(d.toLocaleDateString('sv-SE'))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function updateStats(){ $('#xp').textContent = S.xp; $('#streak').textContent = streak(); }
+
+/* ---------- VIEWS ---------- */
+const VIEWS = ['welcome','trail','lesson','result','report','admin'];
+function show(name){
+  VIEWS.forEach(v => { $('#v-' + v).hidden = v !== name; });
+  window.scrollTo(0, 0);
+  updateStats();
+}
+
+/* ---------- TRAIL ---------- */
+function renderSubjects(){
+  $('#subjects').innerHTML = SUBJECTS.map(s =>
+    `<button class="subj ${s.active ? '' : 'off'}" data-s="${s.id}" aria-current="${s.id === currentSubject}" type="button">${esc(s.name)}${s.active ? '' : ' · em breve'}</button>`
+  ).join('');
+}
+function renderTrail(){
+  const cur = FLAT.findIndex((n, i) => unlocked(i) && !done(n.id));
+  let idx = 0, html = S.openUS ? '' : '<p style="margin:12px 0 0"><button class="ghost" id="btnOpenUS" type="button">Começar por Estados Unidos</button></p>';
+  GEO_UNITS.forEach(u => {
+    html += `<section class="unit"><header><p class="eyebrow">${esc(u.sub)}</p><h2>${esc(u.title)}</h2>${u.note ? `<p class="note">${esc(u.note)}</p>` : ''}</header><div class="path">`;
+    [...u.lessons, u.boss].forEach(n => {
+      const i = idx++;
+      const st = done(n.id) ? 'done' : (i === cur ? 'cur' : (unlocked(i) ? 'open' : 'lock'));
+      const off = [0, -56, 0, 56][i % 4];
+      const label = n.boss ? '★' : (i + 1);
+      const b = best(n.id);
+      html += `<button class="node ${st}${n.boss ? ' boss' : ''}" style="transform:translateX(${off}px)" data-i="${i}" ${st === 'lock' ? 'disabled' : ''} aria-label="${esc(n.title)}"><b>${label}</b><span>${esc(n.title)}</span>${b != null ? `<em>${b}%</em>` : ''}</button>`;
+    });
+    html += `</div></section>`;
+  });
+  $('#trail').innerHTML = html + `<div style="height:20px"></div>`;
+  const rev = S.mistakes.length;
+  $('#subnote').textContent = rev ? `${rev} erro(s) guardados para revisão. Abra o relatório.` : 'Complete as lições em ordem. Cada uma libera a próxima.';
+  renderSubjects();
+  show('trail');
+}
+
+/* ---------- LESSON ---------- */
+let run = null;
+function startLesson(n){
+  run = { n, qs: n.qs, i: 0, hearts: 5, right: 0, answered: false, log: [] };
+  $('#ltitle').textContent = n.title;
+  $('#resumoBody').innerHTML = `<ul>${(n.resumo || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul>${n.svg || ''}`;
+  $('#btnResumo').hidden = !!n.mestre;
+  $('#resumo').hidden = true;
+  $('#btnResumo').setAttribute('aria-expanded', 'false');
+  $('#btnResumo').textContent = 'Ver resumo';
+  show('lesson');
+  if (n.mestre || n.id === 'review') renderQ();
+  else showPreview(n);
+}
+function showPreview(n){
+  $('#lpbar').style.width = '0%';
+  renderHearts();
+  const items = (n.resumo || []).map(r => `<li>${esc(r)}</li>`).join('');
+  $('#lq').innerHTML = `<p class="qnum">Antes de começar: leia o resumo</p><h3 style="margin-bottom:12px">${esc(n.title)}</h3><div class="resumo" style="margin-top:0"><ul>${items}</ul>${n.svg || ''}</div><button class="btn" id="startQ" type="button" style="margin-top:14px">Começar o desafio</button>`;
+  $('#sheet').hidden = true;
+  $('#sbtn').hidden = false;
+  $('#selfgrade').hidden = true;
+}
+function renderHearts(){
+  $('#lhearts').innerHTML = Array.from({ length: 5 }, (_, k) => `<span class="${k < run.hearts ? 'on' : ''}" aria-hidden="true">♥</span>`).join('');
+}
+function renderQ(){
+  const q = run.qs[run.i];
+  $('#lpbar').style.width = (run.i / run.qs.length * 100) + '%';
+  renderHearts();
+  const body = q.essay
+    ? `<textarea class="essay" rows="4" placeholder="Escreva sua resposta aqui. Ela não é salva."></textarea><button class="btn alt" id="reveal" type="button" style="margin-top:12px">Ver resposta de referência</button>`
+    : `<div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}" type="button">${esc(o)}</button>`).join('')}</div>`;
+  $('#lq').innerHTML = `<p class="qnum">Pergunta ${run.i + 1} de ${run.qs.length}</p><h3>${esc(q.q)}</h3>${body}`;
+  $('#sheet').hidden = true;
+  $('#sbtn').hidden = false;
+  $('#selfgrade').hidden = true;
+  run.answered = false;
+}
+function answer(k){
+  if (run.answered) return;
+  run.answered = true;
+  const q = run.qs[run.i];
+  const ok = k === q.a;
+  if (run.n.mestre) {
+    run.log.push({ q, ok, k });
+    stat(run.n.id, ok);
+    if (ok) run.right++;
+    document.querySelectorAll('.opt').forEach(b => { b.disabled = true; });
+    $('#sfeed').innerHTML = 'Resposta registrada. A correção aparece no final.';
+    const lastQ = run.i + 1 >= run.qs.length;
+    $('#sbtn').hidden = false;
+    $('#selfgrade').hidden = true;
+    $('#sbtn').textContent = lastQ ? 'Concluir' : 'Continuar';
+    $('#sheet').hidden = false;
+    $('#sbtn').focus();
+    return;
+  }
+  document.querySelectorAll('.opt').forEach((b, j) => {
+    b.disabled = true;
+    if (j === q.a) b.classList.add('right');
+    else if (j === k) b.classList.add('wrong');
+  });
+  record(ok, q, `<strong class="${ok ? 'ok' : 'bad'}">${ok ? 'Isso aí!' : 'Não foi dessa vez.'}</strong> ${esc(q.exp)}`);
+}
+function reveal(){
+  if (run.answered) return;
+  run.answered = true;
+  const q = run.qs[run.i];
+  $('#reveal').disabled = true;
+  $('#sfeed').innerHTML = `<strong>Resposta de referência:</strong> ${esc(q.ref)}<br><span class="muted">Compare com a sua e marque abaixo.</span>`;
+  $('#sbtn').hidden = true;
+  $('#selfgrade').hidden = false;
+  $('#sheet').hidden = false;
+}
+function grade(ok){
+  const q = run.qs[run.i];
+  record(ok, q, `<strong class="${ok ? 'ok' : 'bad'}">${ok ? 'Boa!' : 'Revise o ponto que faltou.'}</strong>`);
+}
+function record(ok, q, msg){
+  S.days = [...new Set([...S.days, today()])];
+  stat(run.n.id, ok);
+  if (ok) {
+    run.right++; S.xp += 10;
+    if (run.n.id === 'review') S.mistakes = S.mistakes.filter(m => m.q !== q.q);
+  } else {
+    run.hearts--;
+    if (!S.mistakes.some(m => m.q === q.q)) S.mistakes.push({ ...q, from: run.n.title });
+  }
+  persist();
+  syncRemote();
+  renderHearts();
+  $('#sfeed').innerHTML = msg;
+  const last = run.i + 1 >= run.qs.length;
+  $('#sbtn').hidden = false;
+  $('#selfgrade').hidden = true;
+  $('#sbtn').textContent = run.hearts <= 0 ? 'Ver resultado' : (last ? 'Concluir' : 'Continuar');
+  $('#sheet').hidden = false;
+  $('#sbtn').focus();
+}
+function next(){
+  if (run.hearts <= 0 || run.i + 1 >= run.qs.length) return finish();
+  run.i++;
+  renderQ();
+}
+function finish(){
+  const total = run.qs.length;
+  const pct = Math.round(run.right / total * 100);
+  const isReview = run.n.id === 'review';
+  const isBoss = !!run.n.boss;
+  const passed = run.hearts > 0 && (!isBoss || pct >= 70);
+  if (!isReview) {
+    const r = S.results[run.n.id] || { done: false, best: 0, attempts: 0 };
+    S.results[run.n.id] = { done: r.done || passed, best: Math.max(r.best, pct), attempts: r.attempts + 1 };
+    if (passed) S.xp += 20;
+  }
+  if (run.n.mestre) {
+    run.log.filter(x => !x.ok).forEach(x => {
+      if (!S.mistakes.some(m => m.q === x.q.q)) S.mistakes.push({ ...x.q, from: 'Trilha Mestre' });
+    });
+  }
+  persist();
+  syncRemote();
+  $('#rpct').textContent = pct + '%';
+  if (passed) {
+    $('#rtitle').textContent = isReview ? 'Revisão concluída!' : 'Lição concluída!';
+    $('#rbody').textContent = `${run.right} de ${total} certas. A próxima lição já está liberada.`;
+  } else if (run.hearts <= 0) {
+    $('#rtitle').textContent = 'Acabaram as vidas';
+    $('#rbody').textContent = 'Releia o resumo da lição e tente de novo. Os erros ficam guardados para revisão.';
+  } else {
+    $('#rtitle').textContent = 'Quase lá';
+    $('#rbody').textContent = `Precisa de 70% para liberar a próxima unidade. Você fez ${pct}%.`;
+  }
+  $('#btnRetry').hidden = isReview;
+  const rbox = $('#rreview');
+  rbox.hidden = !run.n.mestre;
+  if (run.n.mestre) {
+    const wrong = run.log.filter(x => !x.ok);
+    rbox.innerHTML = '<h3 style="font-size:18px;font-weight:800;margin-bottom:8px">Correção</h3>' + (wrong.length
+      ? '<ul>' + wrong.map(x => `<li style="margin-bottom:10px"><b>${esc(x.q.q)}</b><br>Sua resposta: ${esc(x.q.opts[x.k])}<br>Correta: ${esc(x.q.opts[x.q.a])}<br><span class="muted">${esc(x.q.exp)}</span></li>`).join('') + '</ul>'
+      : '<p style="margin:0">Nenhum erro. Parabéns!</p>');
+  }
+  show('result');
+}
+
+/* ---------- REPORT ---------- */
+function renderReport(){
+  const rows = FLAT.map(n => {
+    const r = S.results[n.id];
+    return `<tr><td>${esc(n.title)}</td><td>${r ? r.best + '%' : '—'}</td><td>${r ? r.attempts : 0}</td><td>${r?.done ? 'Concluída' : 'Pendente'}</td></tr>`;
+  }).join('');
+  $('#rows').innerHTML = rows;
+  const weak = FLAT.filter(n => S.results[n.id] && S.results[n.id].best < 70);
+  $('#weak').innerHTML = weak.length
+    ? weak.map(n => `<li>${esc(n.title)}: melhor resultado ${S.results[n.id].best}%</li>`).join('')
+    : '<li>Nenhum ponto fraco registrado ainda.</li>';
+  $('#mistakeCount').textContent = S.mistakes.length ? `${S.mistakes.length} questão(ões) para revisar.` : 'Nenhum erro guardado.';
+  $('#btnReview').disabled = S.mistakes.length === 0;
+  $('#btnReview').style.opacity = S.mistakes.length ? '1' : '.5';
+  $('#resetNote').textContent = '';
+  $('#btnReset').dataset.armed = '';
+  $('#btnReset').textContent = 'Zerar progresso';
+  show('report');
+}
+
+/* ---------- EVENTS ---------- */
+$('#trail').addEventListener('click', e => {
+  if (e.target.closest('#btnOpenUS')) {
+    S.openUS = true;
+    persist();
+    renderTrail();
+    return;
+  }
+  const b = e.target.closest('.node');
+  if (!b || b.disabled) return;
+  startLesson(FLAT[Number(b.dataset.i)]);
+});
+$('#subjects').addEventListener('click', e => {
+  const b = e.target.closest('.subj');
+  if (!b) return;
+  const s = SUBJECTS.find(x => x.id === b.dataset.s);
+  if (!s.active) { $('#subnote').textContent = `${s.name} entra na trilha depois de Geografia.`; return; }
+  currentSubject = s.id;
+  renderTrail();
+});
+$('#lq').addEventListener('click', e => {
+  const b = e.target.closest('.opt');
+  if (b) return answer(Number(b.dataset.k));
+  if (e.target.closest('#reveal')) reveal();
+  if (e.target.closest('#startQ')) renderQ();
+});
+$('#selfgrade').addEventListener('click', e => {
+  const b = e.target.closest('[data-ok]');
+  if (b) grade(b.dataset.ok === '1');
+});
+$('#btnCopy').addEventListener('click', async () => {
+  const t = summaryText();
+  try {
+    await navigator.clipboard.writeText(t);
+    $('#copyNote').textContent = 'Resumo copiado. Cole aqui no chat.';
+  } catch (e) {
+    const box = $('#copyBox');
+    box.value = t;
+    box.hidden = false;
+    box.select();
+    $('#copyNote').textContent = 'Não consegui copiar sozinho. Copie o texto abaixo e cole aqui no chat.';
+  }
+});
+$('#sbtn').addEventListener('click', next);
+$('#btnExit').addEventListener('click', () => renderTrail());
+$('#btnBack').addEventListener('click', () => renderTrail());
+$('#btnBack2').addEventListener('click', () => renderTrail());
+$('#btnReport').addEventListener('click', renderReport);
+$('#btnRetry').addEventListener('click', () => startLesson(run.n));
+$('#btnResumo').addEventListener('click', () => {
+  const open = $('#resumo').hidden;
+  $('#resumo').hidden = !open;
+  $('#btnResumo').setAttribute('aria-expanded', String(open));
+  $('#btnResumo').textContent = open ? 'Fechar resumo' : 'Ver resumo';
+});
+$('#btnReview').addEventListener('click', () => {
+  if (!S.mistakes.length) return;
+  startLesson({ id:'review', title:'Revisão de erros', resumo:['Refaça as questões que você errou. Acertar remove a questão da revisão.'], qs: shuffle(S.mistakes) });
+});
+$('#btnReset').addEventListener('click', e => {
+  const btn = e.currentTarget;
+  if (btn.dataset.armed !== 'yes') {
+    btn.dataset.armed = 'yes';
+    btn.textContent = 'Tocar de novo para apagar tudo';
+    $('#resetNote').textContent = 'Isso apaga XP, lições e erros guardados neste aparelho.';
+    return;
+  }
+  S.xp = 0; S.days = []; S.results = {}; S.mistakes = []; S.openUS = false;
+  persist();
+  syncRemote();
+  renderTrail();
+});
+
+/* ---------- ÁREA DO ADULTO (senha simples; indicadores vindos do banco) ---------- */
+const ADMIN_PW = '4321';
+const UNIT_OF = {};
+GEO_UNITS.forEach(u => [...u.lessons, u.boss].forEach(n => { UNIT_OF[n.id] = u.title; }));
+const pctOf = (r, t) => t ? Math.round(r / t * 100) + '%' : '—';
+function summarize(doc){
+  const d = doc.data() || {};
+  const st = d.stats || {};
+  const res = d.resultados || {};
+  const units = {};
+  let R = 0, T = 0, feitas = 0;
+  Object.keys(st).forEach(id => { R += st[id].r; T += st[id].t; });
+  Object.keys(res).forEach(id => { if (res[id].done) feitas++; });
+  FLAT.forEach(n => {
+    const u = UNIT_OF[n.id];
+    units[u] = units[u] || { r: 0, t: 0, pts: 0 };
+    if (st[n.id]) { units[u].r += st[n.id].r; units[u].t += st[n.id].t; }
+    units[u].pts += res[n.id] ? (res[n.id].best || 0) : 0;
+  });
+  const dificil = FLAT.filter(n => st[n.id] && st[n.id].t >= 3 && st[n.id].r / st[n.id].t < 0.7)
+    .sort((a, b) => st[a.id].r / st[a.id].t - st[b.id].r / st[b.id].t)
+    .map(n => `<li>${esc(n.title)}: ${pctOf(st[n.id].r, st[n.id].t)} (${st[n.id].r} de ${st[n.id].t})</li>`).join('');
+  const erros = (d.erros || []).slice(0, 8).map(e => `<li>${esc(e.q)} <span class="muted">(${esc(e.de || '')})</span></li>`).join('');
+  const rows = SUBJECTS.map(s => {
+    if (s.id !== 'geo') return `<tr><td>${esc(s.name)}</td><td colspan="2" class="muted" style="text-align:left">Trilha em breve</td></tr>`;
+    const tot = Object.keys(units).reduce((a, u) => { a.r += units[u].r; a.t += units[u].t; a.pts += units[u].pts; return a; }, { r: 0, t: 0, pts: 0 });
+    const unitRows = Object.keys(units).map(u => `<tr><td style="padding-left:18px">↳ ${esc(u)}</td><td>${pctOf(units[u].r, units[u].t)}</td><td>${units[u].pts}</td></tr>`).join('');
+    return `<tr><td><b>${esc(s.name)}</b></td><td>${pctOf(tot.r, tot.t)}</td><td>${tot.pts}</td></tr>${unitRows}`;
+  }).join('');
+  const last = d.atualizado ? new Date(d.atualizado).toLocaleString('pt-BR') : '—';
+  return `<div class="card" style="margin-bottom:14px">
+    <h3 style="font-size:20px;font-weight:800">${esc(d.nome || '?')}</h3>
+    <p class="muted" style="margin:4px 0 10px">Entradas: ${d.entradas || 0} · Última atividade: ${esc(last)}</p>
+    <p style="margin:0 0 10px">XP: <b>${d.xp || 0}</b> · Lições concluídas: <b>${feitas}</b> · Acerto geral: <b>${pctOf(R, T)}</b> (${R} de ${T})</p>
+    <div class="tablewrap"><table><thead><tr><th>Matéria</th><th>Acerto</th><th>Pontos</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sec"><h3>Principais dificuldades</h3>${dificil ? `<ul>${dificil}</ul>` : '<p class="muted" style="margin:0">Nenhuma lição abaixo de 70% com pelo menos 3 respostas.</p>'}</div>
+    <div class="sec"><h3>Erros para revisar</h3>${erros ? `<ul>${erros}</ul>` : '<p class="muted" style="margin:0">Nenhum erro guardado.</p>'}</div>
+  </div>`;
+}
+async function loadAdmin(){
+  const box = $('#adminCards');
+  if (!db) { box.innerHTML = '<p class="muted">Sem conexão com o banco de dados neste aparelho.</p>'; return; }
+  box.innerHTML = '<p class="muted">Carregando...</p>';
+  try {
+    const snap = await db.collection('resultados').get();
+    const docs = snap.docs.filter(d => d.exists);
+    box.innerHTML = docs.length
+      ? docs.map(summarize).join('')
+      : '<p class="muted">Ainda não há dados. Os envios começam quando alguém responde a uma pergunta.</p>';
+  } catch (e) {
+    box.innerHTML = '<p class="muted">Não consegui carregar os dados agora. Tente de novo.</p>';
+  }
+}
+$('#btnAdmin').addEventListener('click', () => {
+  show('admin');
+  $('#pw').value = '';
+  $('#pwMsg').textContent = '';
+  $('#adminGate').hidden = false;
+  $('#adminBody').hidden = true;
+});
+$('#btnEnter').addEventListener('click', () => {
+  if ($('#pw').value === ADMIN_PW) {
+    $('#adminGate').hidden = true;
+    $('#adminBody').hidden = false;
+    loadAdmin();
+  } else {
+    $('#pwMsg').textContent = 'Senha incorreta.';
+  }
+});
+$('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnEnter').click(); });
+$('#btnRefresh').addEventListener('click', loadAdmin);
+$('#btnAdminBack').addEventListener('click', () => renderTrail());
+
+$('#v-welcome').addEventListener('click', e => {
+  const b = e.target.closest('[data-aluno]');
+  if (!b) return;
+  setAluno(b.dataset.aluno);
+  renderTrail();
+});
+$('#btnHow').addEventListener('click', () => show('welcome'));
+
+let savedAluno = null;
+try { savedAluno = localStorage.getItem('trilha-aluno'); } catch (e) {}
+if (savedAluno) { setAluno(savedAluno); renderTrail(); }
+else { show('welcome'); }
+</script>
