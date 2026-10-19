@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -112,6 +113,9 @@ td:not(:first-child),th:not(:first-child){text-align:right;font-variant-numeric:
 .sec ul{margin:0;padding-left:20px}
 .sec li{margin-bottom:6px}
 .muted{color:var(--muted);font-size:14px}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .2em;font-size:.95em;line-height:1.2}
+.fr>.n{border-bottom:1.5px solid currentColor;padding:0 .35em}
+.fr>.d{padding:0 .35em}
 </style>
 
 <div class="app">
@@ -284,7 +288,7 @@ function stat(id, ok){
   S.stats[id] = s;
 }
 const $ = s => document.querySelector(s);
-const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = t => /class="fr"/.test(String(t)) ? String(t) : String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const today = () => new Date().toLocaleDateString('sv-SE');
 const shuffle = a => [...a].sort(() => Math.random() - 0.5);
 
@@ -692,7 +696,723 @@ function summaryText(){
 }
 
 const mkBoss = (lessons, id, title) => ({ id, title, boss:true, resumo: lessons.flatMap(l => l.resumo), qs: shuffle(lessons.flatMap(l => l.qs)).slice(0, 8) });
-const ALL_MC = [...G3, ...G4, ...EX].flatMap(l => l.qs).filter(q => !q.essay);
+/* ---------- CONTENT: MATEMÁTICA (quadriláteros e polígonos; conferir com o caderno, Lista 9 e livro pp. 170-177 e 234-254) ---------- */
+const MAT_QUAD = [
+  { id:'mt-soma', title:'Soma dos ângulos',
+    resumo:[
+      'Todo quadrilátero convexo tem soma dos ângulos internos igual a 360°, pois se divide em dois triângulos (2 × 180°).',
+      'A soma dos ângulos externos de qualquer polígono convexo é 360°.',
+      'Um ângulo externo é suplementar (soma 180°) ao ângulo interno vizinho.' ],
+    qs:[
+      { q:'Qual é a soma dos ângulos internos de um quadrilátero?', opts:['180°','270°','360°','540°'], a:2,
+        exp:'Divide-se o quadrilátero em dois triângulos: 2 × 180° = 360°.' },
+      { q:'Um quadrilátero tem ângulos de 80°, 100° e 110°. Quanto mede o quarto ângulo?', opts:['60°','70°','80°','90°'], a:1,
+        exp:'80 + 100 + 110 = 290. Logo, 360 - 290 = 70°.' },
+      { q:'Qual é a soma dos ângulos externos de um quadrilátero convexo?', opts:['180°','270°','360°','720°'], a:2,
+        exp:'Os ângulos externos de qualquer polígono convexo somam 360°.' },
+      { q:'Verdadeiro ou falso: um ângulo externo é suplementar ao ângulo interno vizinho.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'Ângulo externo + ângulo interno vizinho = 180°.' },
+      { essay:true, q:'Explique por que a soma dos ângulos internos de um quadrilátero é 360°.',
+        ref:'Traçando uma diagonal, o quadrilátero fica dividido em dois triângulos, cada um com soma 180°. Então 2 × 180° = 360°.' }
+    ] },
+  { id:'mt-par', title:'Paralelogramos',
+    resumo:[
+      'Paralelogramo é o quadrilátero com dois pares de lados paralelos.',
+      'Lados opostos são congruentes, e ângulos opostos também são congruentes.',
+      'Ângulos consecutivos são suplementares (somam 180°).',
+      'As diagonais de um paralelogramo se cortam ao meio.' ],
+    qs:[
+      { q:'Em um paralelogramo, os lados opostos são:', opts:['Congruentes','Perpendiculares','Diferentes entre si','Um maior que o outro'], a:0,
+        exp:'Em um paralelogramo, lados opostos têm a mesma medida.' },
+      { q:'Em um paralelogramo, dois ângulos consecutivos medem (2x + 10)° e (x + 20)°. Quanto vale x?', opts:['40','50','60','70'], a:1,
+        exp:'Consecutivos são suplementares: 2x + 10 + x + 20 = 180, então 3x = 150 e x = 50.' },
+      { q:'Em um paralelogramo, um ângulo mede 65°. Quanto mede o ângulo oposto a ele?', opts:['65°','115°','125°','180°'], a:0,
+        exp:'Ângulos opostos são congruentes.' },
+      { q:'Verdadeiro ou falso: num paralelogramo, as diagonais se cortam ao meio.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'As diagonais de um paralelogramo se cortam em seus pontos médios.' },
+      { essay:true, q:'No paralelogramo ABCD, o lado AB mede 8 cm. Quanto mede o lado CD? Justifique.',
+        ref:'CD = 8 cm, porque em um paralelogramo os lados opostos são congruentes.' }
+    ] },
+  { id:'mt-rel', title:'Retângulo, losango e quadrado',
+    resumo:[
+      'Retângulo: paralelogramo com 4 ângulos retos. As diagonais são congruentes.',
+      'Losango: paralelogramo com 4 lados congruentes. As diagonais são perpendiculares entre si.',
+      'Quadrado: une as duas coisas. Tem 4 lados congruentes e 4 ângulos retos, com diagonais congruentes e perpendiculares.' ],
+    qs:[
+      { q:'Qual quadrilátero tem 4 ângulos retos?', opts:['Losango','Retângulo','Trapézio escaleno','Paralelogramo qualquer'], a:1,
+        exp:'O retângulo tem 4 ângulos retos. O losango, em geral, não tem.' },
+      { q:'No losango, as diagonais são:', opts:['Congruentes e paralelas','Perpendiculares entre si','Paralelas aos lados','Sempre do mesmo tamanho dos lados'], a:1,
+        exp:'No losango, as diagonais se cortam em ângulo reto.' },
+      { q:'Qual propriedade é exigida do quadrado, mas NÃO do losango?', opts:['Lados congruentes','Diagonais perpendiculares','Ângulos retos','Diagonais se cortando ao meio'], a:2,
+        exp:'O losango precisa de lados congruentes e diagonais perpendiculares, mas não de ângulos retos.' },
+      { q:'Verdadeiro ou falso: todo quadrado é um retângulo.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'O quadrado tem 4 ângulos retos, então também é retângulo.' },
+      { essay:true, q:'Por que um losango com um ângulo reto é um quadrado?',
+        ref:'Um losango tem os 4 lados congruentes. Se um ângulo é reto, os opostos também são retos, e os consecutivos são suplementares. Logo, os 4 ângulos são retos, e é um quadrado.' }
+    ] },
+  { id:'mt-trap', title:'Trapézios',
+    resumo:[
+      'Trapézio: quadrilátero com exatamente um par de lados paralelos, chamados bases.',
+      'Tipos: escaleno (lados não congruentes), isósceles (lados não paralelos congruentes) e retângulo (um dos lados é perpendicular às bases).',
+      'No trapézio isósceles, os ângulos de cada base são congruentes e as diagonais são congruentes.' ],
+    qs:[
+      { q:'Quantos pares de lados paralelos tem um trapézio?', opts:['Nenhum','Um','Dois','Quatro'], a:1,
+        exp:'O trapézio tem exatamente um par de lados paralelos.' },
+      { q:'Um trapézio com os lados não paralelos congruentes é chamado de:', opts:['Escaleno','Isósceles','Retângulo','Paralelogramo'], a:1,
+        exp:'Esse é o trapézio isósceles.' },
+      { q:'Em um trapézio isósceles, os ângulos de uma mesma base são:', opts:['Complementares','Congruentes','Retos','Diferentes'], a:1,
+        exp:'Os ângulos da mesma base de um trapézio isósceles são congruentes.' },
+      { q:'Em um trapézio isósceles, as diagonais são:', opts:['Perpendiculares','Congruentes','Paralelas','Iguais às bases'], a:1,
+        exp:'Em um trapézio isósceles, as diagonais têm a mesma medida.' },
+      { q:'Em um trapézio isósceles, um ângulo da base maior mede 70°. Quanto mede cada ângulo da base menor?', opts:['70°','110°','90°','180°'], a:1,
+        exp:'Os lados não paralelos formam ângulos suplementares com as bases: 180 - 70 = 110°.' }
+    ] },
+  { id:'mt-base', title:'Bases médias',
+    resumo:[
+      'Base média do triângulo: segmento que liga os pontos médios de dois lados. É paralela ao terceiro lado e mede a metade dele.',
+      'Base média do trapézio: segmento que liga os pontos médios dos lados não paralelos. Mede a média das bases: (B + b) / 2.' ],
+    qs:[
+      { q:'Num triângulo, o segmento que une os pontos médios de dois lados mede quanto do terceiro lado?', opts:['A metade','O dobro','O mesmo','Um terço'], a:0,
+        exp:'A base média de um triângulo mede a metade do lado paralelo a ela.' },
+      { q:'Num triângulo, um lado mede 12 cm. Quanto mede a base média paralela a esse lado?', opts:['6 cm','12 cm','24 cm','3 cm'], a:0,
+        exp:'A base média paralela a um lado mede a metade dele: 12 / 2 = 6 cm.' },
+      { q:'Num trapézio de bases 10 cm e 6 cm, quanto mede a base média?', opts:['8 cm','16 cm','4 cm','6 cm'], a:0,
+        exp:'(10 + 6) / 2 = 8 cm.' },
+      { q:'Num trapézio, a base média mede 9 cm e a base menor, 7 cm. Quanto mede a base maior?', opts:['11 cm','16 cm','2 cm','9 cm'], a:0,
+        exp:'Base maior = 2 × 9 - 7 = 11 cm.' },
+      { essay:true, q:'Explique a diferença entre a base média de um triângulo e a de um trapézio.',
+        ref:'No triângulo, liga os pontos médios de dois lados e mede a metade do terceiro lado. No trapézio, liga os pontos médios dos lados não paralelos e mede a média aritmética das bases.' }
+    ] },
+  { id:'mt-quadprob', title:'Resolução de problemas',
+    resumo:[
+      'Perímetro é a soma de todos os lados.',
+      'Losango: as diagonais se cortam ao meio em ângulo reto, o que forma triângulos retângulos para achar o lado.',
+      'Área do retângulo: base × altura.' ],
+    qs:[
+      { q:'Um trapézio isósceles tem bases de 5 cm e 11 cm e lados não paralelos de 4 cm. Qual é o perímetro?', opts:['20 cm','24 cm','26 cm','30 cm'], a:1,
+        exp:'5 + 11 + 4 + 4 = 24 cm.' },
+      { q:'A base média de um trapézio mede 7 cm e a base maior, 9 cm. Quanto mede a base menor?', opts:['5 cm','4 cm','16 cm','3 cm'], a:0,
+        exp:'Base menor = 2 × 7 - 9 = 5 cm.' },
+      { q:'Um losango tem diagonais de 6 cm e 8 cm. Qual é o perímetro?', opts:['14 cm','20 cm','24 cm','28 cm'], a:1,
+        exp:'Metade das diagonais: 3 e 4. Lado = 5 cm (Pitágoras). Perímetro = 4 × 5 = 20 cm.' },
+      { q:'Um retângulo tem lados de 4 cm e 9 cm. Qual é a área?', opts:['13 cm²','26 cm²','36 cm²','72 cm²'], a:2,
+        exp:'Área = 4 × 9 = 36 cm².' },
+      { q:'Dois ângulos consecutivos de um paralelogramo medem x e 3x. Quanto vale x?', opts:['30°','45°','60°','90°'], a:1,
+        exp:'Consecutivos são suplementares: x + 3x = 180, então x = 45°.' }
+    ] }
+];
+MAT_QUAD[0].free = true;
+
+const MAT_POL = [
+  { id:'mt-pol-def', title:'Elementos do polígono',
+    resumo:[
+      'Polígono é uma figura plana fechada formada por segmentos de reta (os lados).',
+      'Polígono convexo: qualquer segmento entre dois pontos internos fica dentro dele. O não convexo tem "entradas" (concavidades), e algum ângulo interno é maior que 180°.',
+      'Elementos: lados, vértices, ângulos internos, ângulos externos e diagonais (segmentos que ligam vértices não consecutivos).' ],
+    qs:[
+      { q:'Um polígono é convexo quando:', opts:['Todos os ângulos internos são retos','Qualquer segmento entre dois pontos internos fica dentro dele','Tem mais de 10 lados','Não possui diagonais'], a:1,
+        exp:'Essa é a definição de polígono convexo.' },
+      { q:'Os pontos onde dois lados se encontram são chamados de:', opts:['Diagonais','Vértices','Bases','Raios'], a:1,
+        exp:'Vértice é o ponto de encontro de dois lados.' },
+      { q:'Segmentos que ligam vértices não consecutivos são:', opts:['Lados','Diagonais','Alturas','Bases médias'], a:1,
+        exp:'Diagonais ligam vértices que não são vizinhos.' },
+      { q:'Verdadeiro ou falso: um polígono não convexo tem pelo menos um ângulo interno maior que 180°.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'A concavidade faz com que algum ângulo interno seja maior que 180°.' },
+      { essay:true, q:'Em um polígono, quantos vértices existem em relação ao número de lados?',
+        ref:'O mesmo número. Cada lado termina em dois vértices, e cada vértice é o encontro de dois lados, então um polígono tem tantos vértices quanto lados.' }
+    ] },
+  { id:'mt-pol-nome', title:'Nomes dos polígonos',
+    resumo:[
+      '3 lados: triângulo. 4: quadrilátero. 5: pentágono. 6: hexágono. 7: heptágono. 8: octógono.',
+      '9: eneágono. 10: decágono. 11: undecágono. 12: dodecágono. 15: pentadecágono. 20: icoságono.' ],
+    qs:[
+      { q:'Um polígono de 8 lados se chama:', opts:['Hexágono','Octógono','Eneágono','Decágono'], a:1,
+        exp:'Octo = 8: octógono.' },
+      { q:'Qual polígono tem 10 lados?', opts:['Eneágono','Decágono','Dodecágono','Pentágono'], a:1,
+        exp:'Deca = 10: decágono.' },
+      { q:'Um polígono com 6 lados é o:', opts:['Pentágono','Hexágono','Heptágono','Octógono'], a:1,
+        exp:'Hexa = 6: hexágono.' },
+      { q:'Um polígono de 7 lados é chamado de:', opts:['Heptágono','Hexágono','Eneágono','Dodecágono'], a:0,
+        exp:'Hepta = 7: heptágono.' },
+      { q:'Quantos lados tem um dodecágono?', opts:['10','11','12','20'], a:2,
+        exp:'Dodeca = 12.' }
+    ] },
+  { id:'mt-pol-diag', title:'Diagonais',
+    resumo:[
+      'Em um polígono de n lados, cada vértice se liga a n - 3 diagonais (todos, menos ele mesmo e os dois vizinhos).',
+      'Como cada diagonal é contada duas vezes, o total é d = n(n - 3) / 2.',
+      'Exemplos: triângulo, 0 diagonais; quadrilátero, 2; pentágono, 5; hexágono, 9.' ],
+    qs:[
+      { q:'Quantas diagonais tem um quadrilátero convexo?', opts:['0','2','4','5'], a:1,
+        exp:'d = 4 × 1 / 2 = 2.' },
+      { q:'Quantas diagonais tem um pentágono?', opts:['3','4','5','10'], a:2,
+        exp:'d = 5 × 2 / 2 = 5.' },
+      { q:'Quantas diagonais tem um hexágono?', opts:['6','8','9','12'], a:2,
+        exp:'d = 6 × 3 / 2 = 9.' },
+      { q:'Quantas diagonais tem um decágono?', opts:['30','35','40','45'], a:1,
+        exp:'d = 10 × 7 / 2 = 35.' },
+      { essay:true, q:'Por que um triângulo não tem diagonais?',
+        ref:'Porque cada vértice já está ligado aos outros dois por lados. Não sobra nenhum vértice não vizinho.' }
+    ] },
+  { id:'mt-pol-soma', title:'Soma dos ângulos internos',
+    resumo:[
+      'Divide-se o polígono em triângulos a partir de um vértice: são n - 2 triângulos.',
+      'Soma dos ângulos internos: S = (n - 2) × 180°.',
+      'Triângulo: 180°. Quadrilátero: 360°. Pentágono: 540°. Hexágono: 720°.' ],
+    qs:[
+      { q:'Qual é a soma dos ângulos internos de um pentágono?', opts:['360°','540°','720°','900°'], a:1,
+        exp:'(5 - 2) × 180° = 540°.' },
+      { q:'Qual é a soma dos ângulos internos de um octógono?', opts:['900°','1080°','1260°','1440°'], a:1,
+        exp:'(8 - 2) × 180° = 1080°.' },
+      { q:'Em um hexágono regular, cada ângulo interno mede:', opts:['60°','90°','120°','140°'], a:2,
+        exp:'Soma = 720°. Cada ângulo = 720 / 6 = 120°.' },
+      { q:'Um polígono tem soma dos ângulos internos de 1260°. Quantos lados tem?', opts:['7','8','9','10'], a:2,
+        exp:'(n - 2) × 180 = 1260, então n - 2 = 7 e n = 9 (eneágono).' },
+      { q:'Qual é a soma dos ângulos internos de um dodecágono?', opts:['1440°','1800°','2160°','1260°'], a:1,
+        exp:'(12 - 2) × 180° = 1800°.' }
+    ] }
+];
+MAT_POL[0].free = false;
+
+/* ---------- EXTENSÃO: páginas 170-177 e 234-245 do livro ---------- */
+MAT_QUAD.push(
+  { id:'mt-par-b', title:'Paralelogramos: diagonais e ângulos',
+    resumo:[
+      'As diagonais de um paralelogramo se cortam ao meio.',
+      'Num paralelogramo, ângulos consecutivos somam 180°. Ângulos opostos são congruentes.',
+      'Diagonais de um retângulo são congruentes. Diagonais de um losango são perpendiculares e são bissetrizes dos ângulos internos.' ],
+    qs:[
+      { q:'Em um paralelogramo, um ângulo agudo mede 74°. Quanto mede um ângulo obtuso?', opts:['74°','106°','116°','180°'], a:1,
+        exp:'Ângulos consecutivos são suplementares: 180 - 74 = 106°.' },
+      { q:'Em um losango, um ângulo mede 125°. Quanto mede um ângulo agudo?', opts:['55°','65°','125°','235°'], a:0,
+        exp:'O agudo é suplementar do obtuso: 180 - 125 = 55°.' },
+      { q:'Em um paralelogramo, dois ângulos consecutivos são x e 2x + 18. Quanto mede o ângulo obtuso?', opts:['54°','126°','108°','72°'], a:1,
+        exp:'x + 2x + 18 = 180, então x = 54°. O obtuso é 2 × 54 + 18 = 126°.' },
+      { q:'Em um paralelogramo, dois ângulos consecutivos diferem em 40°. Qual é o maior?', opts:['70°','110°','140°','40°'], a:1,
+        exp:'x + (x + 40) = 180, então x = 70°. O maior é 110°.' },
+      { q:'As diagonais de um retângulo se cruzam formando um ângulo de 100°. Qual é o menor ângulo que uma diagonal forma com um lado?', opts:['10°','40°','50°','80°'], a:1,
+        exp:'As diagonais se cortam formando um triângulo com ângulo de 100° no centro. Os outros dois ângulos são iguais: (180 - 100) / 2 = 40° cada. Esse é o menor ângulo entre diagonal e lado.' },
+      { q:'Verdadeiro ou falso: as diagonais de um retângulo são perpendiculares entre si.', opts:['Verdadeiro','Falso'], a:1,
+        exp:'Perpendiculares são as diagonais do losango e do quadrado. No retângulo, elas são apenas congruentes.' },
+      { q:'Em um paralelogramo ABCD, as diagonais se cruzam em M e AM = 5 cm. Quanto mede a diagonal AC?', opts:['5 cm','10 cm','2,5 cm','20 cm'], a:1,
+        exp:'As diagonais se cortam ao meio: AC = 2 × AM = 10 cm.' }
+    ] },
+  { id:'mt-rel-b', title:'Losango, retângulo e quadrado: exercícios',
+    resumo:[
+      'No losango, a diagonal é bissetriz: divide o ângulo do vértice em dois ângulos iguais.',
+      'No retângulo, as diagonais se cruzam em ângulos que formam triângulos isósceles com os lados.',
+      'No quadrado, as diagonais são congruentes, perpendiculares e bissetrizes.' ],
+    qs:[
+      { q:'Num losango, uma diagonal forma com um lado um ângulo de 35°. Quanto mede o ângulo do vértice por onde ela passa?', opts:['35°','70°','110°','145°'], a:1,
+        exp:'A diagonal é bissetriz. Então o ângulo do vértice é 2 × 35 = 70°.' },
+      { q:'Num retângulo, as diagonais se cruzam formando um ângulo de 116°. Quanto mede o ângulo que cada diagonal forma com um lado?', opts:['32°','58°','64°','116°'], a:0,
+        exp:'O triângulo tem base angles iguais: (180 - 116) / 2 = 32°.' },
+      { q:'Num losango, um ângulo agudo mede 80°. A diagonal que passa pelos vértices obtusos forma com um lado que ângulo?', opts:['40°','50°','80°','100°'], a:1,
+        exp:'Os vértices obtusos medem 100°. Como a diagonal é bissetriz, cada parte mede 50°.' },
+      { q:'Um retângulo tem lados de 6 cm e 8 cm. Quanto mede a diagonal?', opts:['10 cm','12 cm','14 cm','7 cm'], a:0,
+        exp:'Pitágoras: √(6² + 8²) = √100 = 10 cm.' },
+      { q:'Verdadeiro ou falso: num quadrado, as diagonais formam entre si ângulos de 90°.', opts:['Verdadeiro','Falso'], a:0,
+        exp:'No quadrado, as diagonais são perpendiculares.' },
+      { q:'Num losango, os ângulos opostos são:', opts:['Congruentes','Suplementares','Retos','Diferentes'], a:0,
+        exp:'Todo losango é paralelogramo, e em paralelogramos os ângulos opostos são congruentes.' }
+    ] },
+  { id:'mt-trap-b', title:'Trapézios: tipos e propriedades',
+    resumo:[
+      'Trapézio retângulo: tem dois ângulos internos retos.',
+      'Trapézio escaleno: lados não paralelos não congruentes. Isósceles: lados não paralelos congruentes.',
+      'No trapézio isósceles, os ângulos de uma mesma base são congruentes e as diagonais são congruentes.',
+      'Ângulos colaterais internos (no mesmo lado não paralelo) somam 180°.' ],
+    qs:[
+      { q:'Um trapézio com dois ângulos internos retos é chamado de:', opts:['Isósceles','Escaleno','Retângulo','Paralelogramo'], a:2,
+        exp:'Dois ângulos retos caracterizam o trapézio retângulo.' },
+      { q:'Em um trapézio retângulo, o ângulo obtuso é o triplo do agudo. Quanto mede o agudo?', opts:['30°','45°','60°','90°'], a:1,
+        exp:'x + 3x = 180, então x = 45°. O obtuso mede 135°.' },
+      { q:'Num trapézio, um ângulo mede 70°. Qual é o ângulo colateral a ele, no mesmo lado não paralelo?', opts:['70°','100°','110°','180°'], a:2,
+        exp:'Colaterais internos são suplementares: 180 - 70 = 110°.' },
+      { q:'Num trapézio isósceles, um ângulo da base menor mede 110°. Quanto mede cada ângulo da base maior?', opts:['70°','110°','90°','180°'], a:0,
+        exp:'Ângulos da mesma base são congruentes. Como a base menor tem 110°, cada ângulo da base maior tem 180 - 110 = 70°.' },
+      { q:'Verdadeiro ou falso: num trapézio escaleno, os lados não paralelos são congruentes.', opts:['Verdadeiro','Falso'], a:1,
+        exp:'No escaleno, os lados não paralelos não são congruentes.' },
+      { q:'Num trapézio isósceles, por que as diagonais são congruentes?', opts:['Os lados são paralelos','Os lados não paralelos são congruentes','Os ângulos são retos','As diagonais são perpendiculares'], a:1,
+        exp:'Os triângulos ABC e BAD são congruentes pelo caso L.A.L., então AC = BD.' },
+      { essay:true, q:'Explique por que, em um trapézio isósceles, os ângulos adjacentes a uma mesma base são congruentes.',
+        ref:'Traçando por C um segmento paralelo a AD, forma-se o triângulo isósceles ECB (EC = AD = BC). Logo, B = E. Como E = A (ângulos correspondentes), concluímos que A = B.' }
+    ] },
+  { id:'mt-quad-ang', title:'Ângulos em quadriláteros: equações',
+    resumo:[
+      'A soma dos ângulos internos de qualquer quadrilátero é 360°. Use isso para montar uma equação.',
+      'Em paralelogramos, ângulos consecutivos somam 180°. Ângulos opostos são iguais.' ],
+    qs:[
+      { q:'Os ângulos de um quadrilátero medem x, x + 40°, x + 80° e 3x. Quanto vale x?', opts:['40°','48°','60°','72°'], a:0,
+        exp:'x + (x + 40) + (x + 80) + 3x = 360, então 6x + 120 = 360, logo x = 40°.' },
+      { q:'Três ângulos de um quadrilátero medem 104°, 97° e 53°. Quanto mede o quarto?', opts:['96°','106°','116°','126°'], a:1,
+        exp:'360 - (104 + 97 + 53) = 360 - 254 = 106°.' },
+      { q:'Num quadrilátero, dois ângulos são retos e os outros dois medem x e 2x. Quanto vale x?', opts:['45°','60°','90°','120°'], a:1,
+        exp:'90 + 90 + x + 2x = 360, então 3x = 180 e x = 60°.' },
+      { q:'Num quadrilátero, três ângulos medem 90°, 110° e x, e o quarto também mede x. Quanto vale x?', opts:['70°','80°','90°','100°'], a:1,
+        exp:'90 + 110 + 2x = 360, então 2x = 160 e x = 80°.' },
+      { q:'Num paralelogramo, dois ângulos consecutivos medem 2x e 4x. Quanto vale x?', opts:['20°','30°','45°','60°'], a:1,
+        exp:'2x + 4x = 180, então 6x = 180 e x = 30°.' }
+    ] }
+);
+
+MAT_POL.push(
+  { id:'mt-pol-ext', title:'Soma dos ângulos externos',
+    resumo:[
+      'A soma dos ângulos externos de qualquer polígono convexo é 360°, não importa o número de lados.',
+      'Cada ângulo externo é suplementar ao ângulo interno vizinho.',
+      'Em um polígono regular, cada ângulo externo mede 360° ÷ n.' ],
+    qs:[
+      { q:'Qual é a soma dos ângulos externos de um decágono?', opts:['360°','1 440°','1 800°','180°'], a:0,
+        exp:'A soma dos ângulos externos é sempre 360°.' },
+      { q:'Em um polígono regular de 12 lados, quanto mede cada ângulo externo?', opts:['20°','30°','36°','60°'], a:1,
+        exp:'360 ÷ 12 = 30°.' },
+      { q:'Em um polígono regular, cada ângulo externo mede 45°. Quantos lados ele tem?', opts:['6','7','8','9'], a:2,
+        exp:'360 ÷ 45 = 8 lados (octógono).' },
+      { q:'Cada ângulo externo de um pentágono regular mede:', opts:['72°','108°','36°','540°'], a:0,
+        exp:'360 ÷ 5 = 72°.' },
+      { q:'Um ângulo interno de um polígono regular mede 144°. Quanto mede o ângulo externo vizinho?', opts:['36°','54°','144°','216°'], a:0,
+        exp:'180 - 144 = 36°.' },
+      { essay:true, q:'Por que a soma dos ângulos externos de qualquer polígono convexo é 360°?',
+        ref:'Em cada vértice, ângulo interno + ângulo externo = 180°. Somando para os n vértices: n × 180° - S_i. Como S_i = (n - 2) × 180°, a soma dos externos é n × 180° - (n - 2) × 180° = 360°.' }
+    ] },
+  { id:'mt-pol-prob', title:'Problemas com polígonos',
+    resumo:[
+      'Para achar o número de lados a partir da soma interna, use (n - 2) × 180° = S_i.',
+      'Diagonais: d = n(n - 3) / 2. De cada vértice saem n - 3 diagonais.',
+      'Triângulos formados ao traçar as diagonais de um vértice: n - 2.' ],
+    qs:[
+      { q:'A soma dos ângulos internos de um polígono é 1 620°. Qual é o nome dele?', opts:['Eneágono','Decágono','Undecágono','Dodecágono'], a:2,
+        exp:'(n - 2) × 180 = 1620, então n - 2 = 9 e n = 11 (undecágono).' },
+      { q:'Quantas diagonais tem um polígono de 11 lados?', opts:['33','44','55','88'], a:1,
+        exp:'d = 11 × 8 / 2 = 44.' },
+      { q:'Um hexágono tem perímetro de 72 cm e todos os lados congruentes. Quanto mede cada lado?', opts:['6 cm','9 cm','12 cm','18 cm'], a:2,
+        exp:'72 ÷ 6 = 12 cm.' },
+      { q:'Qual polígono tem maior perímetro: heptágono de lado 2,5 cm, octógono de lado 2 cm ou eneágono de lado 1,8 cm?', opts:['Heptágono','Octógono','Eneágono','Todos iguais'], a:0,
+        exp:'Heptágono: 7 × 2,5 = 17,5 cm. Octógono: 16 cm. Eneágono: 16,2 cm.' },
+      { q:'Quantos triângulos são formados ao traçar as diagonais de um vértice de um dodecágono?', opts:['8','9','10','12'], a:2,
+        exp:'n - 2 = 12 - 2 = 10 triângulos.' },
+      { q:'Qual polígono tem número de diagonais igual ao número de lados?', opts:['Triângulo','Quadrilátero','Pentágono','Hexágono'], a:2,
+        exp:'d = n(n - 3)/2 = n, então n - 3 = 2 e n = 5.' },
+      { q:'Quantas diagonais partem de um único vértice de um polígono de 9 lados?', opts:['5','6','7','9'], a:1,
+        exp:'n - 3 = 9 - 3 = 6.' },
+      { q:'Um polígono tem soma dos ângulos internos igual a 1 080°. Quantos lados tem?', opts:['6','7','8','9'], a:2,
+        exp:'(n - 2) × 180 = 1080, então n - 2 = 6 e n = 8 (octógono).' }
+    ] }
+);
+
+/* ---------- EXTENSÃO 2: páginas 246-254 do livro (base média, exercícios e testes) ---------- */
+MAT_QUAD.push(
+  { id:'mt-base-b', title:'Base média: exercícios',
+    resumo:[
+      'Base média do triângulo = metade do lado paralelo a ela.',
+      'Base média do trapézio = (base maior + base menor) / 2. Use para achar uma base quando a outra e a média são conhecidas.',
+      'Perímetro do trapézio = soma das bases + 2 lados não paralelos.' ],
+    qs:[
+      { q:'Num triângulo de base 14 cm, o segmento MN une os pontos médios de dois lados. Quanto mede MN?', opts:['7 cm','14 cm','28 cm','5 cm'], a:0,
+        exp:'MN é base média paralela à base de 14 cm, então mede 14 / 2 = 7 cm.' },
+      { q:'Num triângulo, a base média paralela ao lado BC mede 4,5 cm. Quanto mede BC?', opts:['4,5 cm','9 cm','2,25 cm','13,5 cm'], a:1,
+        exp:'BC = 2 × 4,5 = 9 cm.' },
+      { q:'Num trapézio de bases 5,4 cm e 8,6 cm, quanto mede a base média?', opts:['6,5 cm','7 cm','14 cm','3,2 cm'], a:1,
+        exp:'(5,4 + 8,6) / 2 = 14 / 2 = 7 cm.' },
+      { q:'Num trapézio, a base média mede 6 cm e a base maior mede 9 cm. Quanto mede a base menor?', opts:['2 cm','3 cm','4 cm','6 cm'], a:1,
+        exp:'Base menor = 2 × 6 - 9 = 3 cm.' },
+      { q:'Um trapézio tem 32 cm de altura e base média de 45 cm. Qual é a área?', opts:['720 cm²','1 440 cm²','77 cm²','2 880 cm²'], a:1,
+        exp:'Área do trapézio = base média × altura = 45 × 32 = 1 440 cm².' },
+      { q:'Um trapézio isósceles tem lados não paralelos de 12 cm e base média de 20 cm. Qual é o perímetro?', opts:['52 cm','64 cm','72 cm','80 cm'], a:1,
+        exp:'Soma das bases = 2 × 20 = 40 cm. Perímetro = 40 + 12 + 12 = 64 cm.' },
+      { q:'Um trapézio tem perímetro de 66 cm e base média de 20 cm. Quanto mede cada lado não paralelo, supondo que sejam congruentes?', opts:['10 cm','13 cm','16,5 cm','20 cm'], a:1,
+        exp:'Soma das bases = 40 cm. Os dois lados somam 66 - 40 = 26 cm, então cada um mede 13 cm.' },
+      { q:'Um telhado trapezoidal tem 5 ripas paralelas. A menor mede 2 m e a maior, 12 m. Quanto mede a ripa do meio?', opts:['6 m','7 m','8 m','9 m'], a:1,
+        exp:'A ripa do meio é a base média: (2 + 12) / 2 = 7 m.' },
+      { q:'No triângulo ABC, os lados medem 6 cm, 9 cm e 10 cm. Qual é o perímetro do triângulo formado pelos pontos médios?', opts:['12,5 cm','25 cm','6,25 cm','15 cm'], a:0,
+        exp:'O triângulo dos pontos médios tem lados iguais à metade: perímetro = 25 / 2 = 12,5 cm.' }
+    ] },
+  { id:'mt-testes-quad', title:'Testes: quadriláteros',
+    resumo:[
+      'Quadrado = retângulo + losango. Todo quadrado é retângulo e losango, mas nem todo retângulo é quadrado.',
+      'Bissetrizes de ângulos consecutivos de um paralelogramo se cruzam formando ângulo reto.',
+      'Num trapézio isósceles, os ângulos da mesma base são congruentes e as diagonais são congruentes.' ],
+    qs:[
+      { q:'Considere: I) as diagonais de um paralelogramo se cruzam no ponto médio; II) as diagonais de um paralelogramo são perpendiculares; III) as diagonais de um paralelogramo são congruentes. Qual é a alternativa correta?', opts:['Todas são verdadeiras','Todas são falsas','Apenas uma é verdadeira','Apenas uma é falsa'], a:2,
+        exp:'Só a I é verdadeira. II e III valem apenas em casos particulares (losango e retângulo).' },
+      { q:'O paralelogramo com os quatro ângulos congruentes e os quatro lados congruentes é o:', opts:['Retângulo','Quadrado','Losango','Trapézio'], a:1,
+        exp:'Ângulos retos e lados iguais: quadrado.' },
+      { q:'Qual é a afirmação falsa?', opts:['Todo quadrado é retângulo.','Todo losango é paralelogramo.','Todo quadrado é losango.','Todo paralelogramo é retângulo.'], a:3,
+        exp:'Paralelogramos em geral não têm ângulos retos.' },
+      { q:'A base média de um trapézio tem por medida:', opts:['A metade da base maior','A metade da base menor','A soma das bases','A semissoma das bases'], a:3,
+        exp:'Base média = (B + b) / 2, a semissoma das bases.' },
+      { q:'As bissetrizes de dois ângulos consecutivos de um paralelogramo formam um ângulo:', opts:['Agudo','Reto','Obtuso','Raso'], a:1,
+        exp:'Os dois ângulos consecutivos somam 180°; metade de cada soma 90°, e o ângulo formado é reto.' },
+      { q:'Em um trapézio isósceles, um ângulo obtuso mede 120°. O ângulo formado pelas bissetrizes dos ângulos agudos mede:', opts:['30°','60°','120°','150°'], a:2,
+        exp:'Os agudos medem 60°. Metade de cada um: 30° + 30°. No triângulo formado: 180 - 60 = 120°.' },
+      { q:'Um retângulo é formado por cinco quadrados congruentes em fileira. Se o perímetro de cada quadrado é 6,24 cm, qual é o perímetro do retângulo?', opts:['62,4 cm','31,2 cm','18,72 cm','15,60 cm'], a:2,
+        exp:'Lado do quadrado = 6,24 / 4 = 1,56 cm. Retângulo de 5 × 1,56 por 1,56: perímetro = 2 × (7,80 + 1,56) = 18,72 cm.' },
+      { q:'Em um quadrilátero ABCD, A = 108°, B = 76° e C = 92°. Qual é o ângulo formado pelas bissetrizes de C e D?', opts:['84°','82°','92°','72°'], a:2,
+        exp:'D = 360 - 108 - 76 - 92 = 84°. Ângulo = 180 - (92/2 + 84/2) = 180 - 46 - 42 = 92°.' },
+      { q:'No trapézio ABCD, MN é a base média, com AB = x + 3, DC = 4x - 3 e MN = 2x + 2. Qual é o valor de x?', opts:['3','4','5','6'], a:1,
+        exp:'(x + 3 + 4x - 3) / 2 = 2x + 2, então 5x = 4x + 4 e x = 4.' },
+      { q:'Num paralelogramo ABCD, os ângulos opostos C e A medem 2a e a + 70°. Quanto mede o ângulo B?', opts:['40°','50°','60°','70°'], a:0,
+        exp:'Opostos são iguais: 2a = a + 70, então a = 70° e C = 140°. Logo B = 180 - 140 = 40°.' },
+      { q:'Num trapézio isósceles ABCD, qual afirmação NÃO vale sempre?', opts:['As bases AB e CD são paralelas.','Os ângulos A e B são congruentes.','Os lados AD e BC são congruentes.','A altura é a semissoma das bases.'], a:3,
+        exp:'A altura não é a semissoma das bases. Essa semissoma é a base média.' },
+      { q:'Em um trapézio, DC = 2·AB e a base média MN mede 15 cm. Quanto medem DC e AB?', opts:['10 cm e 5 cm','5 cm e 10 cm','20 cm e 10 cm','10 cm e 20 cm'], a:2,
+        exp:'(AB + 2AB) / 2 = 15, então AB = 10 e DC = 20 cm.' },
+      { q:'Se ABCD é um retângulo, então ABCD é um paralelogramo. Logo, podemos concluir que:', opts:['Se ABCD não é retângulo, então não é paralelogramo.','Se ABCD é paralelogramo, então é retângulo.','Se ABCD não é retângulo, então é paralelogramo.','Se ABCD não é paralelogramo, então não é retângulo.'], a:3,
+        exp:'Se não é paralelogramo, então não é retângulo (contrapositiva).' }
+    ] }
+);
+
+/* ---------- FIGURAS GERADAS POR CÓDIGO: a resposta sai dos mesmos números desenhados ---------- */
+const RAD = Math.PI / 180;
+const LET = ['A','B','C','D','E','F','G','H'];
+function fitPts(pts) {
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const s = Math.min(150 / ((x1 - x0) || 1), 100 / ((y1 - y0) || 1));
+  const ox = 120 - ((x0 + x1) / 2) * s, oy = 92 + ((y0 + y1) / 2) * s;
+  return pts.map(p => [ox + p[0] * s, oy - p[1] * s]);
+}
+function txtAt(x, y, s, size, bold) {
+  return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${size || 11}" text-anchor="middle" fill="currentColor"${bold ? ' font-weight="700"' : ''}>${s}</text>`;
+}
+function figSvg(pts, o) {
+  o = o || {};
+  const all = fitPts(pts);
+  const np = o.poly || all.length;
+  const P = all.slice(0, np);
+  const cx = P.reduce((a, p) => a + p[0], 0) / np, cy = P.reduce((a, p) => a + p[1], 0) / np;
+  let s = `<path d="M${P.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L')} Z" fill="none" stroke="currentColor" stroke-width="2"/>`;
+  (o.diags || []).forEach(([i, j]) => {
+    const A = all[i], B = all[j];
+    s += `<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  });
+  all.forEach((p, i) => {
+    let dx = p[0] - cx, dy = p[1] - cy; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+    if (o.names && o.names[i]) s += txtAt(p[0] + dx * 12, p[1] + dy * 12 + 4, o.names[i], 12, true);
+    if (o.angles && o.angles[i] != null) s += txtAt(p[0] + dx * 28, p[1] + dy * 28 + 4, o.angles[i], 11);
+  });
+  for (let i = 0; i < np; i++) {
+    const j = (i + 1) % np, A = P[i], B = P[j];
+    const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+    const tx = B[0] - A[0], ty = B[1] - A[1]; const L = Math.hypot(tx, ty) || 1;
+    let nx = -ty / L, ny = tx / L;
+    if ((mx - cx) * nx + (my - cy) * ny < 0) { nx = -nx; ny = -ny; }
+    const t = (o.ticks && o.ticks[i]) || 0;
+    for (let k = 0; k < t; k++) {
+      const off = (k - (t - 1) / 2) * 5, px = mx + (tx / L) * off, py = my + (ty / L) * off;
+      s += `<line x1="${(px - nx * 4).toFixed(1)}" y1="${(py - ny * 4).toFixed(1)}" x2="${(px + nx * 4).toFixed(1)}" y2="${(py + ny * 4).toFixed(1)}" stroke="currentColor" stroke-width="2"/>`;
+    }
+    if (o.sides && o.sides[i] != null) s += txtAt(mx + nx * 14, my + ny * 14 + 4, o.sides[i], 11);
+  }
+  return `<svg viewBox="0 0 240 180" style="width:100%;max-width:260px;display:block;margin:6px auto" aria-hidden="true">${s}</svg>`;
+}
+function vq(q, exp, svg, correct, others, pos) {
+  const opts = others.slice(); opts.splice(pos, 0, correct);
+  return { q, opts, a: pos, exp, svg };
+}
+const PARP = (a, b, th) => { const c = Math.cos(th * RAD), s = Math.sin(th * RAD); return [[0, 0], [a, 0], [a + b * c, b * s], [b * c, b * s]]; };
+const TRAPP = (B, b, th) => { const off = (B - b) / 2, h = off * Math.tan(th * RAD); return [[0, 0], [B, 0], [B - off, h], [off, h]]; };
+const REGP = n => Array.from({ length: n }, (_, k) => [60 * Math.cos(2 * Math.PI * k / n), 60 * Math.sin(2 * Math.PI * k / n)]);
+const DIAGP = n => { const d = []; for (let i = 0; i < n; i++) for (let j = i + 2; j < n; j++) { if (i === 0 && j === n - 1) continue; d.push([i, j]); } return d; };
+const NAMES4 = ['A', 'B', 'C', 'D'];
+
+MAT_QUAD.push(
+  { id:'mt-vis-quad', title:'Figuras: quadriláteros',
+    resumo:[
+      'Leia a figura antes de calcular: letras marcam vértices, traços iguais marcam lados congruentes.',
+      'Em paralelogramos, ângulos opostos são iguais e ângulos consecutivos somam 180°.',
+      'Em trapézios isósceles, os ângulos da mesma base são iguais e as diagonais têm a mesma medida.' ],
+    qs:[
+      vq('No paralelogramo ABCD, o ângulo A mede 50°. Quanto vale x (ângulo B)?',
+        'B e A são consecutivos: B = 180 - 50 = 130°.',
+        figSvg(PARP(6, 4, 50), { names: NAMES4, angles: ['50°', 'x', null, null] }),
+        '130°', ['50°', '90°', '140°'], 2),
+      vq('No paralelogramo ABCD, o ângulo B mede 60°. Quanto vale x (ângulo C)?',
+        'C é oposto a A, e A é consecutivo de B: A = 180 - 60 = 120°, logo C = 120°.',
+        figSvg(PARP(6, 4, 120), { names: NAMES4, angles: [null, '60°', 'x', null] }),
+        '120°', ['60°', '140°', '90°'], 1),
+      vq('No trapézio isósceles ABCD, os ângulos da base maior medem 60°. Quanto vale x (ângulo C)?',
+        'C e B são colaterais no mesmo lado não paralelo: C = 180 - 60 = 120°.',
+        figSvg(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', '60°', 'x', null], sides: [null, null, null, null] }),
+        '120°', ['60°', '90°', '140°'], 1),
+      vq('No trapézio isósceles ABCD, AC mede 7 cm. Quanto mede a diagonal BD?',
+        'Em trapézios isósceles, as diagonais são congruentes: BD = AC = 7 cm.',
+        figSvg(TRAPP(8, 4, 60), { names: NAMES4, diags: [[0, 2], [1, 3]] }),
+        '7 cm', ['3,5 cm', '14 cm', '8 cm'], 3),
+      vq('No retângulo ABCD, AB = 8 cm e BC = 6 cm. Quanto mede a diagonal AC?',
+        'Pitágoras: AC = √(8² + 6²) = √100 = 10 cm.',
+        figSvg([[0, 0], [8, 0], [8, 6], [0, 6]], { names: NAMES4, sides: ['8 cm', '6 cm', null, null], diags: [[0, 2]] }),
+        '10 cm', ['14 cm', '12 cm', '7 cm'], 2),
+      vq('M e N são pontos médios de AC e BC do triângulo ABC. Se AB = 8 cm, quanto mede MN?',
+        'MN é base média paralela a AB: MN = 8 / 2 = 4 cm.',
+        figSvg([[0, 0], [8, 0], [2, 6], [1, 3], [5, 3]], { poly: 3, names: ['A', 'B', 'C', 'M', 'N'], sides: ['8 cm', null, null], diags: [[3, 4]] }),
+        '4 cm', ['2 cm', '8 cm', '3,5 cm'], 0),
+      vq('No paralelogramo ABCD, o ângulo A mede 70°. Quanto vale x (ângulo D)?',
+        'D é consecutivo de A: D = 180 - 70 = 110°.',
+        figSvg(PARP(6, 4, 70), { names: NAMES4, angles: ['70°', null, null, 'x'] }),
+        '110°', ['70°', '90°', '160°'], 0)
+    ] }
+);
+
+MAT_POL.push(
+  { id:'mt-vis-pol', title:'Figuras: polígonos e diagonais',
+    resumo:[
+      'Diagonais ligam vértices não vizinhos. De cada vértice saem n - 3 diagonais.',
+      'Total de diagonais: n(n - 3) / 2.',
+      'Em um polígono regular, todos os lados e ângulos são iguais. Ângulo externo = 360° / n.' ],
+    qs:[
+      vq('Quantas diagonais tem o polígono da figura?',
+        'n = 5: d = 5 × 2 / 2 = 5.',
+        figSvg(REGP(5), { names: LET.slice(0, 5), diags: DIAGP(5) }),
+        '5', ['10', '2', '20'], 0),
+      vq('Quantas diagonais tem o polígono da figura?',
+        'n = 6: d = 6 × 3 / 2 = 9.',
+        figSvg(REGP(6), { names: LET.slice(0, 6), diags: DIAGP(6) }),
+        '9', ['15', '3', '36'], 2),
+      vq('Quantas diagonais tem o polígono da figura?',
+        'n = 8: d = 8 × 5 / 2 = 20.',
+        figSvg(REGP(8), { names: LET.slice(0, 8), diags: DIAGP(8) }),
+        '20', ['28', '5', '80'], 1),
+      vq('O octógono da figura é regular. Quanto mede cada ângulo externo?',
+        'Ângulo externo = 360° / 8 = 45°.',
+        figSvg(REGP(8), {}),
+        '45°', ['135°', '90°', '360°'], 3),
+      vq('O hexágono da figura é regular. Quanto vale x (ângulo interno em A)?',
+        'Soma = (6 - 2) × 180 = 720°. Cada ângulo = 720 / 6 = 120°.',
+        figSvg(REGP(6), { names: LET.slice(0, 6), angles: ['x', null, null, null, null, null] }),
+        '120°', ['60°', '90°', '144°'], 1)
+    ] }
+);
+
+/* ---------- FIGURA DE CADA INTRO (resumo antes do desafio) ---------- */
+const LESSON_FIG = {
+  'mt-soma': figSvg([[0, 0], [6, 0], [7, 4], [2, 5]], { names: NAMES4, diags: [[0, 2]] }),
+  'mt-par': figSvg(PARP(6, 4, 60), { names: NAMES4 }),
+  'mt-rel': figSvg([[0, 0], [8, 0], [8, 6], [0, 6]], { names: NAMES4, sides: ['8 cm', '6 cm', null, null], diags: [[0, 2], [1, 3]] }),
+  'mt-trap': figSvg(TRAPP(8, 4, 60), { names: NAMES4, ticks: [0, 1, 0, 1] }),
+  'mt-base': figSvg([[0, 0], [8, 0], [2, 6], [1, 3], [5, 3]], { poly: 3, names: ['A', 'B', 'C', 'M', 'N'], diags: [[3, 4]] }),
+  'mt-quadprob': figSvg(TRAPP(11, 5, 60), { names: NAMES4, sides: [null, null, '5 cm', null] }),
+  'mt-par-b': figSvg(PARP(6, 4, 50), { names: NAMES4, diags: [[0, 2], [1, 3]] }),
+  'mt-rel-b': figSvg([[0, 0], [8, 0], [8, 6], [0, 6]], { names: NAMES4, diags: [[0, 2], [1, 3]] }),
+  'mt-trap-b': figSvg([[0, 0], [8, 0], [5, 4], [0, 4]], { names: NAMES4, angles: ['90°', null, null, '90°'] }),
+  'mt-quad-ang': figSvg([[0, 0], [7, 0], [5, 5], [1, 4]], { names: NAMES4, angles: ['x', 'x + 40°', 'x + 80°', '3x'] }),
+  'mt-vis-quad': figSvg(PARP(6, 4, 50), { names: NAMES4, angles: ['50°', 'x', null, null] }),
+  'mt-pol-def': figSvg([[0, 0], [6, 0], [7, 4], [3, 6], [-1, 3]], { names: LET.slice(0, 5) }),
+  'mt-pol-nome': figSvg(REGP(8), { names: LET.slice(0, 8) }),
+  'mt-pol-diag': figSvg(REGP(6), { names: LET.slice(0, 6), diags: DIAGP(6) }),
+  'mt-pol-soma': figSvg(REGP(6), { names: LET.slice(0, 6), diags: [[0, 2], [0, 3], [0, 4]] }),
+  'mt-pol-ext': figSvg(REGP(8), { names: LET.slice(0, 8) }),
+  'mt-pol-prob': figSvg(REGP(7), { names: LET.slice(0, 7) }),
+  'mt-vis-pol': figSvg(REGP(5), { names: LET.slice(0, 5), diags: DIAGP(5) })
+};
+/* Ilustrações por tópico do resumo (piloto: Soma dos ângulos) */
+const capt = s => `<p class="muted" style="font-size:.9em;margin:2px 0 12px">${s}</p>`;
+const EXTF = `<svg viewBox="0 0 240 180" style="width:100%;max-width:260px;display:block;margin:6px auto" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><line x1="40" y1="120" x2="120" y2="120"/><line x1="120" y1="120" x2="160" y2="50"/><line x1="120" y1="120" x2="210" y2="120" stroke-dasharray="4 3" stroke-width="1.2"/></g><text x="108" y="112" font-size="12" text-anchor="middle" fill="currentColor">i</text><text x="142" y="112" font-size="12" text-anchor="middle" fill="currentColor">e</text><text x="160" y="172" font-size="11" text-anchor="middle" fill="currentColor">i + e = 180°</text></svg>`;
+MAT_QUAD[0].topicFigs = [
+  figSvg([[0, 0], [6, 0], [7, 4], [2, 5]], { names: NAMES4, diags: [[0, 2]] }) + capt('Uma diagonal divide o quadrilátero em dois triângulos: 2 × 180° = 360°.'),
+  figSvg([[0, 0], [6, 0], [7, 4], [2, 5]], { angles: ['e1', 'e2', 'e3', 'e4'] }) + capt('Andando pelo contorno e virando em cada vértice, a volta completa soma 360°. Esses ângulos são os externos (e1 a e4).'),
+  EXTF + capt('Prolongando um lado, o ângulo externo (e) e o interno vizinho (i) formam um ângulo raso: i + e = 180°.')
+];
+
+/* ---------- ILUSTRAÇÕES POR TÓPICO (todas as lições de Matemática) ---------- */
+const C = capt, F = figSvg;
+const RECT = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
+const RHO = [[0, 3], [4, 0], [8, 3], [4, 6]];
+const TRI_MID = [[0, 0], [8, 0], [2, 6], [1, 3], [5, 3]];
+const ESC = [[0, 0], [8, 0], [6, 3], [3, 3]];
+const RTRAP = [[0, 0], [8, 0], [5, 4], [0, 4]];
+const TR_MN = (() => { const T = TRAPP(8, 4, 60), h = T[3][1]; return [...T, [1, h / 2], [7, h / 2]]; })();
+const BIS_P = [4.5, 2.598];
+const PARP61 = PARP(6, 4, 60);
+const PAR_ANG = ['60°', '120°', '60°', '120°'];
+const DIAG0 = n => Array.from({ length: n - 3 }, (_, k) => [0, k + 2]);
+const polyRow = items => {
+  const step = 240 / items.length;
+  let s = '';
+  items.forEach(([n, lab], k) => {
+    const cx = step * k + step / 2, cy = 38, r = Math.min(16, step / 2 - 4);
+    const pts = Array.from({ length: n }, (_, i) => { const a = 2 * Math.PI * i / n - Math.PI / 2; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+    s += `<path d="M${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L')} Z" fill="none" stroke="currentColor" stroke-width="1.8"/>`;
+    s += txtAt(cx, 78, lab, 9);
+  });
+  return `<svg viewBox="0 0 240 90" style="width:100%;max-width:300px;display:block;margin:6px auto" aria-hidden="true">${s}</svg>`;
+};
+const TOPIC = {
+  'mt-par': [
+    F(PARP61, { names: NAMES4 }) + C('AB ∥ DC e AD ∥ BC: os dois pares de lados opostos são paralelos.'),
+    F(PARP61, { names: NAMES4, ticks: [1, 2, 1, 2] }) + C('Traços iguais: AB = DC e AD = BC.'),
+    F(PARP61, { names: NAMES4, angles: PAR_ANG }) + C('A + B = 180° (consecutivos). Ângulos opostos são iguais: A = C.'),
+    F(PARP61, { names: NAMES4, diags: [[0, 2], [1, 3]] }) + C('As diagonais se cortam no ponto médio: AM = MC e BM = MD.')
+  ],
+  'mt-rel': [
+    F(RECT(8, 6), { names: NAMES4, angles: ['90°', '90°', '90°', '90°'], diags: [[0, 2], [1, 3]] }) + C('Retângulo: 4 ângulos de 90° e diagonais iguais (AC = BD).'),
+    F(PARP(5, 5, 60), { names: NAMES4, ticks: [1, 1, 1, 1], diags: [[0, 2], [1, 3]] }) + C('Losango: 4 lados iguais. As diagonais se cruzam em ângulo reto.'),
+    F(RECT(6, 6), { names: NAMES4, ticks: [1, 1, 1, 1], diags: [[0, 2], [1, 3]] }) + C('Quadrado: lados iguais, ângulos retos, diagonais iguais e perpendiculares.')
+  ],
+  'mt-trap': [
+    F(TRAPP(8, 4, 60), { names: NAMES4 }) + C('AB e DC são as bases (paralelas). AD e BC são os lados não paralelos.'),
+    F(ESC, {}) + F(TRAPP(8, 4, 60), { ticks: [0, 1, 0, 1] }) + F(RTRAP, { angles: ['90°', null, null, '90°'] }) + C('Escaleno: lados não paralelos diferentes. Isósceles: iguais (traço). Retângulo: dois ângulos de 90°.'),
+    F(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', '60°', '120°', '120°'], diags: [[0, 2], [1, 3]], ticks: [0, 1, 0, 1] }) + C('A = B (mesma base) e C = D. As diagonais AC e BD são iguais.')
+  ],
+  'mt-base': [
+    F(TRI_MID, { poly: 3, names: ['A', 'B', 'C', 'M', 'N'], sides: ['8 cm', null, null], diags: [[3, 4]] }) + C('MN liga os pontos médios de AC e BC: MN ∥ AB e MN = AB ÷ 2 = 4 cm.'),
+    F(TR_MN, { poly: 4, names: ['A', 'B', 'C', 'D', 'M', 'N'], sides: ['8 cm', null, '4 cm', null], diags: [[4, 5]] }) + C('MN liga os pontos médios dos lados não paralelos. MN = (8 + 4) ÷ 2 = 6 cm.')
+  ],
+  'mt-quadprob': [
+    F(PARP61, { sides: ['6 cm', '4 cm', '6 cm', '4 cm'] }) + C('Perímetro = soma dos quatro lados: 6 + 4 + 6 + 4 = 20 cm.'),
+    F(RHO, { sides: ['5 cm', null, null, null], diags: [[0, 2], [1, 3]] }) + C('Diagonais de 8 cm e 6 cm: metades 4 e 3. O lado é a hipotenusa: 5 cm. Perímetro = 4 × 5 = 20 cm.'),
+    F(RECT(8, 5), { sides: ['8 cm', '5 cm', null, null] }) + C('Área do retângulo = base × altura = 8 × 5 = 40 cm².')
+  ],
+  'mt-par-b': [
+    F(PARP61, { names: NAMES4, diags: [[0, 2], [1, 3]] }) + C('As diagonais se cortam ao meio.'),
+    F(PARP61, { names: NAMES4, angles: PAR_ANG }) + C('Consecutivos somam 180°. Opostos são iguais.'),
+    F(RECT(8, 6), { names: NAMES4, diags: [[0, 2], [1, 3]] }) + F(PARP(5, 5, 60), { names: NAMES4, diags: [[0, 2], [1, 3]] }) + C('Em cima, retângulo: diagonais iguais. Embaixo, losango: diagonais perpendiculares e bissetrizes.')
+  ],
+  'mt-rel-b': [
+    F(PARP(5, 5, 60), { names: NAMES4, diags: [[0, 2]] }) + C('A diagonal AC divide o ângulo A do losango em duas partes iguais.'),
+    F(RECT(8, 6), { names: NAMES4, diags: [[0, 2], [1, 3]] }) + C('As diagonais se cortam ao meio. Cada metade de diagonal é igual às outras duas: os quatro triângulos formados são isósceles.'),
+    F(RECT(6, 6), { names: NAMES4, ticks: [1, 1, 1, 1], diags: [[0, 2], [1, 3]] }) + C('No quadrado, as diagonais são iguais, perpendiculares e bissetrizes.')
+  ],
+  'mt-trap-b': [
+    F(RTRAP, { names: NAMES4, angles: ['90°', null, null, '90°'] }) + C('Dois ângulos retos (em A e em D).'),
+    F(ESC, {}) + F(TRAPP(8, 4, 60), { ticks: [0, 1, 0, 1] }) + C('Em cima, escaleno: lados diferentes. Embaixo, isósceles: lados iguais (traço).'),
+    F(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', '60°', '120°', '120°'], diags: [[0, 2], [1, 3]], ticks: [0, 1, 0, 1] }) + C('A = B e C = D. As diagonais AC e BD são iguais.'),
+    F(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', null, null, '120°'] }) + C('A e D estão no mesmo lado AD: 60° + 120° = 180°.')
+  ],
+  'mt-quad-ang': [
+    F([[0, 0], [7, 0], [5, 5], [1, 4]], { names: NAMES4, diags: [[0, 2]] }) + C('A diagonal divide o quadrilátero em 2 triângulos: 2 × 180° = 360°.'),
+    F(PARP(6, 4, 50), { names: NAMES4, angles: ['50°', '130°', '50°', '130°'] }) + C('Consecutivos: 50° + 130° = 180°. Opostos são iguais.')
+  ],
+  'mt-base-b': [
+    F(TRI_MID, { poly: 3, names: ['A', 'B', 'C', 'M', 'N'], sides: ['8 cm', null, null], diags: [[3, 4]] }) + C('MN = AB ÷ 2 = 4 cm.'),
+    F(TR_MN, { poly: 4, names: ['A', 'B', 'C', 'D', 'M', 'N'], sides: ['8 cm', null, '4 cm', null], diags: [[4, 5]] }) + C('MN = (8 + 4) ÷ 2 = 6 cm.'),
+    F(TRAPP(11, 5, 60), { names: NAMES4, sides: ['11 cm', 'l', '5 cm', 'l'] }) + C('Trapézio isósceles: os dois lados não paralelos (l) são iguais. Perímetro = 11 + 5 + 2l.')
+  ],
+  'mt-testes-quad': [
+    F(RECT(6, 6), { names: NAMES4, ticks: [1, 1, 1, 1], angles: ['90°', '90°', '90°', '90°'] }) + C('Quadrado: 4 ângulos retos (é retângulo) e 4 lados iguais (é losango).'),
+    F([...PARP61, BIS_P], { poly: 4, names: ['A', 'B', 'C', 'D', 'P'], diags: [[0, 4], [1, 4]] }) + C('As bissetrizes de A e B se cruzam em P. Metade de A (30°) e metade de B (60°): o ângulo em P é 90°.'),
+    F(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', '60°', '120°', '120°'], ticks: [0, 1, 0, 1], diags: [[0, 2], [1, 3]] }) + C('Trapézio isósceles: ângulos da mesma base são iguais e as diagonais são iguais.')
+  ],
+  'mt-vis-quad': [
+    F(PARP(5, 5, 60), { names: NAMES4, ticks: [1, 1, 1, 1] }) + C('Letras são vértices. Traços iguais são lados de mesma medida.'),
+    F(PARP61, { names: NAMES4, angles: PAR_ANG }) + C('Opostos iguais (60° e 60°). Consecutivos somam 180°.'),
+    F(TRAPP(8, 4, 60), { names: NAMES4, angles: ['60°', '60°', '120°', '120°'], diags: [[0, 2], [1, 3]] }) + C('Base AB: A = B. Diagonais AC = BD.')
+  ],
+  'mt-pol-def': [
+    F(REGP(5), { names: LET.slice(0, 5) }) + C('Os lados são AB, BC, CD, DE e EA.'),
+    F(REGP(5), {}) + F([[0, 0], [6, 2], [0, 4], [2, 2]], { names: ['A', 'B', 'C', 'D'] }) + C('Em cima, convexo: o segmento entre dois pontos internos fica dentro. Embaixo, não convexo: tem um ângulo interno maior que 180°.'),
+    F(REGP(5), { names: LET.slice(0, 5), diags: DIAGP(5) }) + C('Vértices: A a E. Diagonais: AC, AD, BD, BE e CE.')
+  ],
+  'mt-pol-nome': [
+    polyRow([[3, 'triângulo'], [4, 'quadrilátero'], [5, 'pentágono'], [6, 'hexágono']]) + polyRow([[7, 'heptágono'], [8, 'octógono']]) + C('Conte os lados de cada figura e veja o nome.'),
+    polyRow([[9, 'eneágono'], [10, 'decágono'], [11, 'undecágono'], [12, 'dodecágono']]) + C('15 lados é pentadecágono e 20 lados é icoságono.')
+  ],
+  'mt-pol-diag': [
+    F(REGP(6), { names: LET.slice(0, 6), diags: DIAG0(6) }) + C('Do vértice A saem 3 diagonais (6 − 3 = 3).'),
+    F(REGP(6), { names: LET.slice(0, 6), diags: DIAGP(6) }) + C('Total: 6 × 3 ÷ 2 = 9 diagonais.'),
+    F(REGP(3), {}) + F(REGP(4), { diags: [[0, 2], [1, 3]] }) + F(REGP(5), { diags: DIAGP(5) }) + C('Triângulo: 0 diagonais. Quadrilátero: 2. Pentágono: 5.')
+  ],
+  'mt-pol-soma': [
+    F(REGP(6), { names: LET.slice(0, 6), diags: DIAG0(6) }) + C('Hexágono: 6 − 2 = 4 triângulos.'),
+    F(REGP(5), { names: LET.slice(0, 5), diags: DIAG0(5) }) + C('Pentágono: 5 − 2 = 3 triângulos. S = 3 × 180° = 540°.'),
+    polyRow([[3, '180°'], [4, '360°'], [5, '540°'], [6, '720°']]) + C('Soma dos ângulos internos: triângulo 180°, quadrilátero 360°, pentágono 540°, hexágono 720°.')
+  ],
+  'mt-pol-prob': [
+    F(REGP(11), {}) + C('Exemplo: S = 1620° → (n − 2) × 180 = 1620 → n − 2 = 9 → n = 11 (undecágono).'),
+    F(REGP(7), { names: LET.slice(0, 7), diags: DIAG0(7) }) + C('Heptágono: de cada vértice saem 7 − 3 = 4 diagonais. No total: 7 × 4 ÷ 2 = 14.'),
+    F(REGP(7), { names: LET.slice(0, 7), diags: DIAG0(7) }) + C('Heptágono: de um vértice saem 7 − 2 = 5 triângulos.')
+  ],
+  'mt-vis-pol': [
+    F(REGP(5), { names: LET.slice(0, 5), diags: DIAG0(5) }) + C('Do vértice A saem 2 diagonais (5 − 3 = 2).'),
+    F(REGP(6), { names: LET.slice(0, 6), diags: DIAGP(6) }) + C('6 × 3 ÷ 2 = 9 diagonais.'),
+    F(REGP(8), { names: LET.slice(0, 8) }) + C('Octógono regular: lados e ângulos iguais. Cada externo: 360° ÷ 8 = 45°.')
+  ],
+  'mt-pol-ext': [
+    F(REGP(5), { names: LET.slice(0, 5), angles: ['e', 'e', 'e', 'e', 'e'] }) + C('Os cinco ângulos externos (e) somam 360°.'),
+    EXTF + C('O ângulo externo e o interno vizinho (i) formam um ângulo raso: i + e = 180°.'),
+    F(REGP(8), { names: LET.slice(0, 8) }) + C('Octógono regular: 360° ÷ 8 = 45° por ângulo externo.')
+  ]
+};
+[...MAT_QUAD, ...MAT_POL].forEach(l => {
+  if (!TOPIC[l.id]) return;
+  if (TOPIC[l.id].length !== l.resumo.length) console.warn('topic mismatch', l.id, TOPIC[l.id].length, l.resumo.length);
+  l.topicFigs = TOPIC[l.id];
+});
+
+/* ---------- MATEMÁTICA 1 · FRAÇÕES ALGÉBRICAS (resolver no caderno, depois escolher a alternativa) ---------- */
+const MAT1_UNITS = [
+  { id:"al1", subj:"mat1", sub:"Matemática 1 · Frações algébricas · Teoria", title:"Fundamentos", lessons:[
+    { id:"alg-conceito", title:"O que é fração algébrica", caderno:true, resumo:["Fração algébrica é o quociente de duas expressões algébricas em que o denominador tem pelo menos uma letra.", "Exemplo: 3a/x é fração algébrica. Já x/5 não é, porque o denominador 5 é numérico.", "Numerador e denominador podem ser polinômios, como (x + 1)/(x² + 2)."], qs:[{"q": "Qual destas é uma fração algébrica?", "opts": ["(3x + 5)/4", "2x²/5", "7/(x − 3)", "0,5y/8"], "a": 2, "exp": "O denominador de 7/(x − 3) tem a letra x. As outras têm denominador numérico."}, {"q": "Qual expressão NÃO é fração algébrica?", "opts": ["(x + 1)/(y − 2)", "5/(2x)", "(a² − b)/7", "x/(x² + 1)"], "a": 2, "exp": "Em (a² − b)/7 o denominador é 7, um número. Não há letra no denominador."}, {"q": "Na fração 2x²/5, qual afirmação está correta?", "opts": ["É fração algébrica, porque o numerador tem letra.", "Não é fração algébrica, porque o denominador é numérico.", "É fração algébrica, porque o denominador tem letra.", "É um polinômio, não uma fração."], "a": 1, "exp": "Ter letra no numerador não basta. O denominador precisa ter letra. Aqui é 5, então não é fração algébrica."}, {"q": "Calcule o valor numérico de 2x/(x + 3) para x = 2.", "opts": ["4/5", "1", "2/5", "5/4"], "a": 0, "exp": "Substituindo: (2·2)/(2 + 3) = 4/5."}, {"q": "Calcule o valor numérico de 3x/(y − 2) para x = 4 e y = 5.", "opts": ["4", "12", "3", "1/4"], "a": 0, "exp": "Substituindo: (3·4)/(5 − 2) = 12/3 = 4."}, {"q": "Calcule o valor numérico de 2xy/(3y²) para x = 3 e y = 1.", "opts": ["2", "6", "1/3", "3"], "a": 0, "exp": "Substituindo: (2·3·1)/(3·1) = 6/3 = 2."}] },
+    { id:"alg-ce", title:"Condição de existência", caderno:true, resumo:["O denominador nunca pode ser zero, porque divisão por zero não existe.", "Para achar a condição de existência (CE), iguale o denominador a zero e exclua esses valores.", "Se o denominador é um produto, cada fator precisa ser diferente de zero."], qs:[{"q": "Qual é a condição de existência de 5/(x − 3)?", "opts": ["x ≠ 3", "x ≠ 5", "x ≠ 0", "x ≠ −3"], "a": 0, "exp": "x − 3 = 0 quando x = 3. Então x ≠ 3."}, {"q": "Para qual valor de x a fração (2x + 1)/(x − 4) não representa número real?", "opts": ["x = −1/2", "x = 0", "x = 4", "x = −4"], "a": 2, "exp": "x − 4 = 0 quando x = 4."}, {"q": "Qual é a condição de existência de (x + 5)/(2x − 3)?", "opts": ["x ≠ 3/2", "x ≠ −3/2", "x ≠ 3", "x ≠ 5/2"], "a": 0, "exp": "2x − 3 = 0 quando x = 3/2. Então x ≠ 3/2."}, {"q": "Para qual valor de y a fração (12 + y)/(y − 6) não existe?", "opts": ["y = 12", "y = −12", "y = 6", "y = 0"], "a": 2, "exp": "y − 6 = 0 quando y = 6."}, {"q": "Qual é a condição de existência de 4/((x − 1)(x + 5))?", "opts": ["x ≠ 1 e x ≠ −5", "x ≠ 1 ou x ≠ 5", "x ≠ −1 e x ≠ 5", "x ≠ 0"], "a": 0, "exp": "Cada fator não pode ser zero: x ≠ 1 e x ≠ −5."}, {"q": "Qual é a condição de existência de (x − 2)/(x² − 4)?", "opts": ["x ≠ 2 e x ≠ −2", "x ≠ 4", "x ≠ ±4", "x ≠ 2 apenas"], "a": 0, "exp": "x² − 4 = (x − 2)(x + 2). Então x ≠ 2 e x ≠ −2."}] },
+    { id:"alg-valor", title:"Valor numérico", caderno:true, resumo:["Para calcular o valor numérico, substitua cada letra pelo número dado e faça as contas.", "Antes de substituir, confira a CE: se o denominador der zero, não há valor numérico naquele ponto.", "Exemplo: (−5xy + 7)/(2y) com x = 3 e y = 5 dá (−75 + 7)/10 = −68/10 = −34/5."], qs:[{"q": "Calcule o valor numérico de (x + 1)/(2x) para x = 1.", "opts": ["1", "2", "1/2", "0"], "a": 0, "exp": "(1 + 1)/(2·1) = 2/2 = 1."}, {"q": "Calcule (−5xy + 7)/(2y) para x = 3 e y = 5.", "opts": ["−34/5", "34/5", "−7/10", "−2/5"], "a": 0, "exp": "(−5·3·5 + 7)/(2·5) = (−75 + 7)/10 = −68/10 = −34/5."}, {"q": "Calcule (x² − y²)/(x + y) para x = 3 e y = 5.", "opts": ["−2", "2", "−16", "0"], "a": 0, "exp": "(9 − 25)/(3 + 5) = −16/8 = −2."}, {"q": "Qual é o valor numérico de (3x + 6)/(x + 2) para x = −1?", "opts": ["3", "0", "−3", "6"], "a": 0, "exp": "Com x = −1: (−3 + 6)/(−1 + 2) = 3/1 = 3."}, {"q": "Para x = 2, o que acontece com (x + 1)/(x − 2)?", "opts": ["Vale 3", "Vale 0", "Não existe, porque o denominador seria zero", "Vale 1/2"], "a": 2, "exp": "Com x = 2, o denominador x − 2 vira 0. Divisão por zero não existe."}, {"q": "Para a = −2 e b = 2, qual é o valor de 15a³/(4b²)?", "opts": ["−15/2", "15/2", "−15/8", "−30"], "a": 0, "exp": "15·(−8)/(4·4) = −120/16 = −15/2."}] }
+  ] },
+  { id:"al2", subj:"mat1", sub:"Matemática 1 · Frações algébricas · Simplificação", title:"Simplificação", lessons:[
+    { id:"alg-fat", title:"Fatoração antes de simplificar", caderno:true, resumo:["Fator comum: ax + ay = a(x + y). Agrupamento: ax + ay + bx + by = (a + b)(x + y).", "Trinômio quadrado perfeito: x² + 2xy + y² = (x + y)² e x² − 2xy + y² = (x − y)².", "Diferença de quadrados: x² − y² = (x + y)(x − y).", "Regra de ouro: cancela-se fator (que multiplica), nunca parcela (que soma)."], qs:[{"q": "Fatore 6x² + 9x.", "opts": ["3x(2x + 3)", "3x(2x + 4)", "2x(3x + 3)", "6x(x + 9)"], "a": 0, "exp": "3x · 2x = 6x² e 3x · 3 = 9x. Logo 3x(2x + 3)."}, {"q": "Fatore ax + ay + bx + by.", "opts": ["(a + b)(x + y)", "(a + x)(b + y)", "(a + b)(x − y)", "ab·xy"], "a": 0, "exp": "Agrupe: a(x + y) + b(x + y) = (a + b)(x + y)."}, {"q": "Fatore x² − 16.", "opts": ["(x + 4)(x − 4)", "(x − 4)²", "(x − 8)(x + 8)", "(x + 4)²"], "a": 0, "exp": "Diferença de quadrados: x² − 4² = (x + 4)(x − 4)."}, {"q": "Fatore x² + 6x + 9.", "opts": ["(x + 3)²", "(x + 9)²", "(x + 3)(x − 3)", "(x + 6)²"], "a": 0, "exp": "Trinômio quadrado perfeito: 3² = 9 e 2·3 = 6. Logo (x + 3)²."}, {"q": "Fatore 2x² − 8.", "opts": ["2(x + 2)(x − 2)", "(x + 2)(x − 2)", "2(x − 2)²", "(2x − 2)(x + 2)"], "a": 0, "exp": "Primeiro tire o 2: 2(x² − 4). Depois 2(x + 2)(x − 2)."}, {"q": "Qual é a forma fatorada de x² − 2x + 1?", "opts": ["(x − 1)²", "(x + 1)²", "(x − 1)(x + 1)", "(x − 2)²"], "a": 0, "exp": "x² − 2x + 1 é trinômio quadrado perfeito: (x − 1)²."}] },
+    { id:"alg-simp1", title:"Simplificação por fator comum", caderno:true, resumo:["Simplificar é dividir numerador e denominador pelos fatores comuns.", "Exemplo: 4x²/(2x) = (2x · 2x)/(2x) = 2x.", "Não se cancela parcela: (x + 2)/x não é igual a 2.", "Mesmo depois de simplificar, os valores que anulavam o denominador continuam proibidos."], qs:[{"q": "Simplifique 4x²/(2x).", "opts": ["2x", "2x²", "4x", "2"], "a": 0, "exp": "4x²/(2x) = 2x · 2x/(2x) = 2x."}, {"q": "Simplifique 12ab/(4a).", "opts": ["3b", "3ab", "8b", "3a"], "a": 0, "exp": "12/4 = 3 e a/a = 1. Resultado: 3b."}, {"q": "Simplifique 6x³y/(9xy²).", "opts": ["2x²/(3y)", "2x³/(3y²)", "2x/(3y)", "3x²/(2y)"], "a": 0, "exp": "6/9 = 2/3; x³/x = x²; y/y² = 1/y. Resultado: 2x²/(3y)."}, {"q": "Simplifique (x² + 3x)/x.", "opts": ["x + 3", "x² + 3", "4x", "3"], "a": 0, "exp": "x² + 3x = x(x + 3). Então o resultado é x + 3."}, {"q": "Simplifique (x² + 2x)/(x + 2).", "opts": ["x", "x + 1", "x²", "2x"], "a": 0, "exp": "x² + 2x = x(x + 2). Cancelando (x + 2): x. A CE continua x ≠ −2."}, {"q": "Simplifique (x² + 5x + 6)/(x² + 3x + 2).", "opts": ["(x + 3)/(x + 1)", "(x + 2)/(x + 1)", "(x + 3)/(x + 2)", "(x + 6)/(x + 2)"], "a": 0, "exp": "Fatorando: (x + 2)(x + 3)/((x + 1)(x + 2)). Cancelando (x + 2): (x + 3)/(x + 1)."}] },
+    { id:"alg-simp2", title:"Diferença de quadrados e trinômios", caderno:true, resumo:["Diferença de quadrados: (x² − 9)/(x − 3) = (x + 3)(x − 3)/(x − 3) = x + 3.", "Trinômio quadrado perfeito: (x² − 6x + 9)/(x − 3) = (x − 3)²/(x − 3) = x − 3.", "Fatore completamente antes de cancelar.", "Atenção: (b − a) = −(a − b). Esse sinal de menos aparece em muitas simplificações."], qs:[{"q": "Simplifique (x² − 9)/(x − 3).", "opts": ["x + 3", "x − 3", "x² − 3", "x + 9"], "a": 0, "exp": "x² − 9 = (x + 3)(x − 3). Cancelando: x + 3."}, {"q": "Simplifique (x² − 6x + 9)/(x − 3).", "opts": ["x − 3", "x + 3", "(x − 3)²", "x² − 3"], "a": 0, "exp": "x² − 6x + 9 = (x − 3)². Cancelando: x − 3."}, {"q": "Simplifique (x² − 16)/(x + 4).", "opts": ["x − 4", "x + 4", "x² − 4", "x − 16"], "a": 0, "exp": "(x + 4)(x − 4)/(x + 4) = x − 4."}, {"q": "Simplifique (3x² + 6x + 3)/(x + 1).", "opts": ["3x + 3", "3x + 6", "3x² + 3", "x + 3"], "a": 0, "exp": "3x² + 6x + 3 = 3(x + 1)². Cancelando: 3(x + 1) = 3x + 3."}, {"q": "Simplifique (5a² − 20)/(a − 2).", "opts": ["5a + 10", "5a − 10", "5a² + 10", "a + 10"], "a": 0, "exp": "5(a² − 4)/(a − 2) = 5(a − 2)(a + 2)/(a − 2) = 5(a + 2) = 5a + 10."}, {"q": "Simplifique (b − a)/(a² − b²).", "opts": ["−1/(a + b)", "1/(a + b)", "−1/(a − b)", "(a + b)/(b − a)"], "a": 0, "exp": "a² − b² = (a − b)(a + b). Como b − a = −(a − b), o resultado é −1/(a + b)."}] },
+    { id:"alg-simp3", title:"Agrupamento e polinômios opostos", caderno:true, resumo:["Agrupe termos em pares para achar um fator comum: ax + ay + bx + by = (a + b)(x + y).", "Polinômios opostos são iguais com sinais trocados: (2x − y) e (y − 2x).", "Quando numerador e denominador são opostos, a fração vale −1.", "Quando o denominador é o oposto de um fator do numerador, o sinal de menos sai na frente."], qs:[{"q": "Simplifique (ax + ay + bx + by)/(x + y).", "opts": ["a + b", "ax + by", "(a + b)(x + y)", "a + b + x + y"], "a": 0, "exp": "O numerador é (a + b)(x + y). Cancelando (x + y): a + b."}, {"q": "Qual é o valor de (2x − y)/(y − 2x)?", "opts": ["−1", "1", "2", "0"], "a": 0, "exp": "Os polinômios são opostos: y − 2x = −(2x − y). A fração vale −1."}, {"q": "Simplifique (x² − y²)/(y − x).", "opts": ["−x − y", "x + y", "x − y", "y − x"], "a": 0, "exp": "x² − y² = (x − y)(x + y) e y − x = −(x − y). Resultado: −(x + y)."}, {"q": "Simplifique (xy + 2x + 3y + 6)/(y + 2).", "opts": ["x + 3", "x + 6", "xy + 3", "(x + 3)(y + 2)"], "a": 0, "exp": "Agrupe: x(y + 2) + 3(y + 2) = (x + 3)(y + 2). Cancelando: x + 3."}, {"q": "Simplifique (mx − my + nx − ny)/(x² − y²).", "opts": ["(m + n)/(x + y)", "(m − n)/(x + y)", "(m + n)/(x − y)", "mx + ny"], "a": 0, "exp": "Numerador = (m + n)(x − y). Denominador = (x − y)(x + y). Resultado: (m + n)/(x + y)."}, {"q": "Simplifique (x² + 6x + 9)/(x² − 9).", "opts": ["(x + 3)/(x − 3)", "(x − 3)/(x + 3)", "(x + 6)/(x − 9)", "1"], "a": 0, "exp": "(x + 3)²/((x − 3)(x + 3)) = (x + 3)/(x − 3)."}] }
+  ] },
+  { id:"al3", subj:"mat1", sub:"Matemática 1 · Frações algébricas · Operações", title:"Multiplicação e divisão", lessons:[
+    { id:"alg-mult", title:"Multiplicação de frações algébricas", caderno:true, resumo:["Multiplique numerador com numerador e denominador com denominador: (a/b) · (c/d) = ac/(bd).", "Antes de multiplicar, fatore e cancele fatores de cima com fatores de baixo.", "Resultado final: numerador e denominador sem fatores comuns.", "Liste as CE de todos os denominadores originais."], qs:[{"q": "Efetue (4x/3) · (7/y).", "opts": ["28x/(3y)", "11x/(3y)", "4x/(21y)", "28/(3xy)"], "a": 0, "exp": "(4x · 7)/(3 · y) = 28x/(3y)."}, {"q": "Efetue (6a²/(10b²c)) · (15b/(9a)).", "opts": ["a/(bc)", "a²/(bc)", "2a/(3bc)", "a/(b²c)"], "a": 0, "exp": "Multiplicando: 90a²b/(90ab²c). Cancelando 90, a e b: a/(bc)."}, {"q": "Efetue ((a − 5)/(3a²)) · (2a/(a − 5)).", "opts": ["2/(3a)", "2/(3a²)", "1/(3a)", "2a/3"], "a": 0, "exp": "Cancelando (a − 5) e um a: 2/(3a)."}, {"q": "Efetue ((x² − 1)/(x + 1)) · (x/(x − 1)).", "opts": ["x", "x + 1", "x²", "1"], "a": 0, "exp": "(x − 1)(x + 1)/(x + 1) = x − 1. Então (x − 1) · x/(x − 1) = x. CE: x ≠ ±1."}, {"q": "Efetue ((x + 2)/(x − 2)) · ((x² − 4)/(x + 2)).", "opts": ["x + 2", "x − 2", "(x + 2)²", "1"], "a": 0, "exp": "(x² − 4) = (x − 2)(x + 2). Cancelando: x + 2."}, {"q": "Efetue ((ab + ac)/x) · (x²/(b + c)).", "opts": ["ax", "a/x", "ax²", "ab + ac"], "a": 0, "exp": "ab + ac = a(b + c). Cancelando (b + c) e um x: ax."}] },
+    { id:"alg-div", title:"Divisão: multiplique pelo inverso", caderno:true, resumo:["Mantenha a primeira fração e multiplique pela inversa da segunda: (a/b) ÷ (c/d) = (a/b) · (d/c).", "A fração (c/d) só pode ser invertida se c ≠ 0. Ou seja, a CE inclui c ≠ 0.", "Inverta primeiro, depois fatore e simplifique."], qs:[{"q": "Efetue (3x/2) ÷ (6/x).", "opts": ["x²/4", "3x/4", "x/4", "4/x²"], "a": 0, "exp": "(3x/2) · (x/6) = 3x²/12 = x²/4."}, {"q": "Efetue ((a + ab)/x²) ÷ ((2 + 2b)/(3x)).", "opts": ["3a/(2x)", "a/(2x)", "3a/(2x²)", "2x/(3a)"], "a": 0, "exp": "a(1 + b)/x² · 3x/(2(1 + b)) = 3a/(2x)."}, {"q": "Efetue ((x² − 1)/(x² − 2x + 1)) ÷ ((x² + 2x + 1)/(x − 1)).", "opts": ["1/(x + 1)", "x + 1", "1/(x − 1)", "(x + 1)/(x − 1)"], "a": 0, "exp": "(x − 1)(x + 1)/(x − 1)² · (x − 1)/(x + 1)² = 1/(x + 1)."}, {"q": "Efetue ((x² − 4x)/(x² + 1)) ÷ ((x² − 16)/(2x² + 2)).", "opts": ["2x/(x + 4)", "2x/(x − 4)", "x/(x + 4)", "2x²/(x + 4)"], "a": 0, "exp": "x(x − 4)/(x² + 1) · 2(x² + 1)/((x − 4)(x + 4)) = 2x/(x + 4)."}, {"q": "Efetue ((a² − b²)/(ab)) ÷ ((a + b)/a).", "opts": ["(a − b)/b", "(a + b)/b", "(a − b)/a", "a/b"], "a": 0, "exp": "(a − b)(a + b)/(ab) · a/(a + b) = (a − b)/b."}, {"q": "Efetue ((x − y)/(x + y)) ÷ ((y − x)/(x + y)).", "opts": ["−1", "1", "(x − y)²/(x + y)²", "0"], "a": 0, "exp": "(x − y)/(x + y) · (x + y)/(y − x) = (x − y)/(y − x) = −1. CE: x ≠ y e x ≠ −y."}] },
+    { id:"alg-mista", title:"Expressões mistas e erros comuns", caderno:true, resumo:["Erro comum: cancelar parcelas. Em (x + 2)/x não se cancela o x com a parcela 2.", "Em (x² + x)/x, fatore x no numerador antes de cancelar: x(x + 1)/x = x + 1.", "Ordem de trabalho: fatore, simplifique, calcule, confira a CE.", "Divisão de frações: inverta a segunda e depois multiplique."], qs:[{"q": "Quem acertou a simplificação de (x² + x)/x?", "opts": ["Marta: x + 1", "Cláudio: x²", "Ambos acertaram", "Nenhum acertou"], "a": 0, "exp": "Marta fatorou: x(x + 1)/x = x + 1. Cláudio cancelou o x da parcela com o denominador, o que não é válido."}, {"q": "Qual é o erro em \"(x + 2)/x = 2\"?", "opts": ["Cancelou-se o x de uma parcela com o denominador", "Não há erro", "Trocou-se o sinal", "Somou-se o denominador"], "a": 0, "exp": "O x do denominador só cancela fator do numerador. Em x + 2, o x é parcela."}, {"q": "Simplifique (x² + x)/(x + 1).", "opts": ["x", "x + 1", "x²", "1"], "a": 0, "exp": "x² + x = x(x + 1). Cancelando (x + 1): x."}, {"q": "Efetue ((x − 2)/(4x²)) · (2x/(x² − 4)) ÷ (1/(x + 2)).", "opts": ["1/(2x)", "1/(4x²)", "2/x", "x + 2"], "a": 0, "exp": "Multiplicando: 1/(2x(x + 2)). Dividindo por 1/(x + 2): 1/(2x)."}, {"q": "Simplifique (5x − 15)/(x² − 9).", "opts": ["5/(x + 3)", "5/(x − 3)", "5x/(x + 3)", "(x − 3)/(x + 3)"], "a": 0, "exp": "5(x − 3)/((x − 3)(x + 3)) = 5/(x + 3). CE: x ≠ ±3."}, {"q": "Simplifique (ax + ay + bx + by)/(x² + 2xy + y²).", "opts": ["(a + b)/(x + y)", "(a + b)/2", "ab/(xy)", "(ax + bx)/(x + y)"], "a": 0, "exp": "(a + b)(x + y)/(x + y)² = (a + b)/(x + y)."}] }
+  ] },
+  { id:"al4", subj:"mat1", sub:"Matemática 1 · Frações algébricas · Desafios", title:"Desafios e revisão", lessons:[
+    { id:"alg-desafio1", title:"Desafio: multiplicação com fatoração", caderno:true, resumo:["Fatore todos os polinômios (fator comum, agrupamento, trinômio, diferença de quadrados).", "Cancele fatores iguais em cima e embaixo.", "Ao final, confira que o resultado não é mais simplificável e que a CE foi respeitada."], qs:[{"q": "(x² − 9)/(2x + 6) · 4x/(x − 3) =", "opts": ["2x", "4x²", "2x²", "x"], "a": 0, "exp": "(x − 3)(x + 3)/(2(x + 3)) · 4x/(x − 3) = 4x/2 = 2x. CE: x ≠ −3 e x ≠ 3."}, {"q": "(x² − 2x + 1)/(x² − 1) · (3x + 3)/(x − 1) =", "opts": ["3", "3x", "3/(x − 1)", "x + 3"], "a": 0, "exp": "(x − 1)²/((x − 1)(x + 1)) · 3(x + 1)/(x − 1) = 3. CE: x ≠ ±1."}, {"q": "(ax + ay + bx + by)/(a² − b²) · (a − b)/(x + y) =", "opts": ["1", "0", "ab", "(a − b)/(x + y)"], "a": 0, "exp": "Numerador = (a + b)(x + y); denominador = (a − b)(a + b). Resultado: 1."}, {"q": "(x² + 6x + 9)/(2x + 10) · (x² − 25)/(x + 3) =", "opts": ["(x + 3)(x − 5)/2", "(x + 3)(x + 5)/2", "(x − 3)(x − 5)/2", "(x² − 25)/2"], "a": 0, "exp": "(x + 3)²/(2(x + 5)) · (x − 5)(x + 5)/(x + 3) = (x + 3)(x − 5)/2."}, {"q": "(mx − my + nx − ny)/(x² − y²) · 2(x + y)/(m + n) =", "opts": ["2", "2x", "1", "(m + n)/2"], "a": 0, "exp": "Numerador = (m + n)(x − y). Denominador = (x − y)(x + y). Resultado: 2."}] },
+    { id:"alg-desafio2", title:"Desafio: lista de revisão final", caderno:true, resumo:["Em frações de trinômios, procure primeiro o trinômio quadrado perfeito ou uma diferença de quadrados.", "Quando há soma de frações, use o mesmo raciocínio: fatore, cancele, confira a CE.", "Cuidado com opostos: (y − 2x) = −(2x − y)."], qs:[{"q": "(x² − 4x + 4)/(3x − 6) · 6x/(x² − 4) =", "opts": ["2x/(x + 2)", "2x/(x − 2)", "x/(x + 2)", "6x/(x + 2)"], "a": 0, "exp": "(x − 2)²/(3(x − 2)) · 6x/((x − 2)(x + 2)) = 2x/(x + 2). CE: x ≠ ±2."}, {"q": "(ac + ad + bc + bd)/(a + b) · (c − d)/(c² − d²) =", "opts": ["1", "c + d", "1/(c + d)", "c − d"], "a": 0, "exp": "(a + b)(c + d)/(a + b) = c + d; (c − d)/((c − d)(c + d)) = 1/(c + d). Produto: 1."}, {"q": "(4x² − 12x + 9)/(2x − 3) · (x + 2)/(2x² + 4x) =", "opts": ["(2x − 3)/(2x)", "(2x − 3)/x", "(2x + 3)/(2x)", "(2x − 3)/(x + 2)"], "a": 0, "exp": "(2x − 3)²/(2x − 3) · (x + 2)/(2x(x + 2)) = (2x − 3)/(2x). CE: x ≠ 3/2, x ≠ 0, x ≠ −2."}, {"q": "(x² − y²)/(x² + 2xy + y²) · (3x + 3y)/(5x − 5y) =", "opts": ["3/5", "3(x + y)/(5(x − y))", "1", "3/(5x)"], "a": 0, "exp": "(x − y)(x + y)/(x + y)² · 3(x + y)/(5(x − y)) = 3/5."}, {"q": "(xy + 2x + 3y + 6)/(x² + 6x + 9) · (x² − 9)/(y + 2) =", "opts": ["x − 3", "x + 3", "(x − 3)/(y + 2)", "(x² − 9)/(y + 2)²"], "a": 0, "exp": "(x + 3)(y + 2)/(x + 3)² · (x − 3)(x + 3)/(y + 2) = x − 3."}, {"q": "Sobre (4a² − 4b²)/(a³ − ab² + a² − b²), afirma-se: I. Simplificada, vale 4/(a + 1). II. Não é número real quando a = −1. Estão corretas:", "opts": ["Apenas I", "Apenas II", "I e II", "Nenhuma"], "a": 2, "exp": "a³ − ab² + a² − b² = (a + 1)(a − b)(a + b) e 4a² − 4b² = 4(a − b)(a + b). Resultado: 4/(a + 1), que não existe para a = −1. Logo I e II são verdadeiras."}] }
+  ] }
+];
+/* ---------- FRAÇÕES EMPILHADAS (exibição) ---------- */
+function frText(s) {
+  if (typeof s !== 'string' || !s.includes('/')) return s;
+  const isAtom = ch => ch !== undefined && /[A-Za-z0-9²³¹⁰-⁹]/.test(ch);
+  const isSup = ch => ch !== undefined && /[²³¹⁰-⁹]/.test(ch);
+  const matchBack = j => { let d = 0; for (let t = j; t >= 0; t--) { if (s[t] === ')') d++; else if (s[t] === '(') { d--; if (d === 0) return t; } } return -1; };
+  const matchFwd = j => { let d = 0; for (let t = j; t < s.length; t++) { if (s[t] === '(') d++; else if (s[t] === ')') { d--; if (d === 0) return t; } } return -1; };
+  let depth = 0;
+  for (let k = 0; k < s.length; k++) {
+    const ch = s[k];
+    if (ch === '(') depth++; else if (ch === ')') depth--;
+    if (ch !== '/') continue;
+    // operando da esquerda
+    let start = k, j = k - 1;
+    while (j >= 0) {
+      if (s[j] === ')') { const m = matchBack(j); if (m < 0) break; start = m; j = m - 1; }
+      else if (isAtom(s[j])) { start = j; j--; }
+      else break;
+    }
+    // operando da direita
+    let end = k + 1;
+    if (s[end] === '(') { const m = matchFwd(end); if (m < 0) continue; end = m + 1; while (isSup(s[end])) end++; }
+    else { while (end < s.length && isAtom(s[end])) end++; }
+    if (start >= k || end <= k + 1) continue;
+    let num = s.slice(start, k), den = s.slice(k + 1, end);
+    const unwrap = t => (t[0] === '(' && matchFwd(0) === undefined) ? t : t;
+    if (num[0] === '(' && matchFwd_in(num) === num.length - 1) num = num.slice(1, -1);
+    if (den[0] === '(' && matchFwd_in(den) === den.length - 1) den = den.slice(1, -1);
+    const frag = `<span class="fr"><span class="n">${frText(num)}</span><span class="d">${frText(den)}</span></span>`;
+    return s.slice(0, start) + frag + frText(s.slice(end));
+  }
+  return s;
+  function matchFwd_in(t) { let d = 0; for (let q = 0; q < t.length; q++) { if (t[q] === '(') d++; else if (t[q] === ')') { d--; if (d === 0) return q; } } return -1; }
+}
+
+MAT1_UNITS.forEach(u => u.lessons.forEach(l => {
+  l.resumo = l.resumo.map(frText);
+  l.qs.forEach(q => { q.q = frText(q.q); q.opts = q.opts.map(frText); q.exp = frText(q.exp); });
+}));
+MAT1_UNITS.forEach(u => { u.boss = mkBoss(u.lessons, u.id + '-boss', 'Simulado: ' + u.title); });
+MAT1_UNITS[0].lessons[0].free = true;
+const MAT1_LESSONS = MAT1_UNITS.flatMap(u => u.lessons);
+MAT1_LESSONS.forEach(l => l.qs.forEach(q => { q.caderno = true; }));
+
+const MAT_UNITS = [
+  { id:'mt1', subj:'mat', sub:'Matemática 2 · Capítulo 9', title:'Quadriláteros', lessons:MAT_QUAD, boss:mkBoss(MAT_QUAD,'mt1-boss','Simulado: quadriláteros') },
+  { id:'mt2', subj:'mat', sub:'Matemática 2 · Capítulo 7', title:'Polígonos', lessons:MAT_POL, boss:mkBoss(MAT_POL,'mt2-boss','Simulado: polígonos') }
+];
+
+const ALL_MC = [...G3, ...G4, ...EX, ...MAT_QUAD, ...MAT_POL, ...MAT1_LESSONS].flatMap(l => l.qs).filter(q => !q.essay);
 
 const GEO_UNITS = [
   { id:'u3', sub:'Unidade 3 · Tema 4 · Prova 19/10', title:'América: aspectos naturais', lessons:G3, boss:mkBoss(G3,'g3-boss','Simulado: América') },
@@ -702,7 +1422,8 @@ const GEO_UNITS = [
 ];
 const SUBJECTS = [
   { id:'geo', name:'Geografia', active:true },
-  { id:'mat', name:'Matemática', active:false },
+  { id:'mat', name:'Matemática 2', active:true },
+  { id:'mat1', name:'Matemática 1', active:true },
   { id:'por', name:'Português', active:false },
   { id:'ing', name:'Inglês', active:false },
   { id:'his', name:'História', active:false },
@@ -711,13 +1432,15 @@ const SUBJECTS = [
   { id:'red', name:'Redação', active:false }
 ];
 let currentSubject = 'geo';
-const FLAT = GEO_UNITS.flatMap(u => [...u.lessons, u.boss]);
+GEO_UNITS.forEach(u => { u.subj = u.id === 'mestre' ? 'mestre' : 'geo'; });
+const ALL_UNITS = [...GEO_UNITS.filter(u => u.subj !== 'mestre'), ...MAT_UNITS, ...MAT1_UNITS, ...GEO_UNITS.filter(u => u.subj === 'mestre')];
+const FLAT = ALL_UNITS.flatMap(u => [...u.lessons, u.boss]);
 
 /* ---------- PROGRESS ---------- */
 const done = id => !!S.results[id]?.done;
 const best = id => S.results[id]?.best ?? null;
 const US_START = FLAT.indexOf(G4[0]);
-const unlocked = i => i === 0 || done(FLAT[i-1].id) || (!!S.openUS && i === US_START);
+const unlocked = i => i === 0 || !!FLAT[i].free || done(FLAT[i-1].id) || (!!S.openUS && i === US_START);
 function streak(){
   let n = 0; const d = new Date();
   if (!S.days.includes(today())) d.setDate(d.getDate() - 1);
@@ -743,7 +1466,8 @@ function renderSubjects(){
 function renderTrail(){
   const cur = FLAT.findIndex((n, i) => unlocked(i) && !done(n.id));
   let idx = 0, html = S.openUS ? '' : '<p style="margin:12px 0 0"><button class="ghost" id="btnOpenUS" type="button">Começar por Estados Unidos</button></p>';
-  GEO_UNITS.forEach(u => {
+  ALL_UNITS.forEach(u => {
+    if (u.subj !== currentSubject && u.subj !== 'mestre') { idx += u.lessons.length + 1; return; }
     html += `<section class="unit"><header><p class="eyebrow">${esc(u.sub)}</p><h2>${esc(u.title)}</h2>${u.note ? `<p class="note">${esc(u.note)}</p>` : ''}</header><div class="path">`;
     [...u.lessons, u.boss].forEach(n => {
       const i = idx++;
@@ -779,7 +1503,7 @@ function startLesson(n){
 function showPreview(n){
   $('#lpbar').style.width = '0%';
   renderHearts();
-  const items = (n.resumo || []).map(r => `<li>${esc(r)}</li>`).join('');
+  const items = (n.resumo || []).map((r, i) => `<li>${esc(r)}${(n.topicFigs && n.topicFigs[i]) || ''}</li>`).join('');
   $('#lq').innerHTML = `<p class="qnum">Antes de começar: leia o resumo</p><h3 style="margin-bottom:12px">${esc(n.title)}</h3><div class="resumo" style="margin-top:0"><ul>${items}</ul>${n.svg || ''}</div><button class="btn" id="startQ" type="button" style="margin-top:14px">Começar o desafio</button>`;
   $('#sheet').hidden = true;
   $('#sbtn').hidden = false;
@@ -794,8 +1518,8 @@ function renderQ(){
   renderHearts();
   const body = q.essay
     ? `<textarea class="essay" rows="4" placeholder="Escreva sua resposta aqui. Ela não é salva."></textarea><button class="btn alt" id="reveal" type="button" style="margin-top:12px">Ver resposta de referência</button>`
-    : `<div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}" type="button">${esc(o)}</button>`).join('')}</div>`;
-  $('#lq').innerHTML = `<p class="qnum">Pergunta ${run.i + 1} de ${run.qs.length}</p><h3>${esc(q.q)}</h3>${body}`;
+    : `${q.caderno ? '<p class="muted" style="margin:0 0 10px">✏️ Resolva no caderno e depois escolha a alternativa.</p>' : ''}<div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}" type="button">${esc(o)}</button>`).join('')}</div>`;
+  $('#lq').innerHTML = `<p class="qnum">Pergunta ${run.i + 1} de ${run.qs.length}</p><h3>${esc(q.q)}</h3>${q.svg || ''}${body}`;
   $('#sheet').hidden = true;
   $('#sbtn').hidden = false;
   $('#selfgrade').hidden = true;
@@ -825,7 +1549,7 @@ function answer(k){
     if (j === q.a) b.classList.add('right');
     else if (j === k) b.classList.add('wrong');
   });
-  record(ok, q, `<strong class="${ok ? 'ok' : 'bad'}">${ok ? 'Isso aí!' : 'Não foi dessa vez.'}</strong> ${esc(q.exp)}`);
+  record(ok, q, `<strong class="${ok ? 'ok' : 'bad'}">${ok ? 'Isso aí!' : 'Não foi dessa vez.'}</strong> ${esc(q.exp)}${q.svg || ''}`);
 }
 function reveal(){
   if (run.answered) return;
@@ -902,7 +1626,7 @@ function finish(){
   if (run.n.mestre) {
     const wrong = run.log.filter(x => !x.ok);
     rbox.innerHTML = '<h3 style="font-size:18px;font-weight:800;margin-bottom:8px">Correção</h3>' + (wrong.length
-      ? '<ul>' + wrong.map(x => `<li style="margin-bottom:10px"><b>${esc(x.q.q)}</b><br>Sua resposta: ${esc(x.q.opts[x.k])}<br>Correta: ${esc(x.q.opts[x.q.a])}<br><span class="muted">${esc(x.q.exp)}</span></li>`).join('') + '</ul>'
+      ? '<ul>' + wrong.map(x => `<li style="margin-bottom:10px"><b>${esc(x.q.q)}</b><br>Sua resposta: ${esc(x.q.opts[x.k])}<br>Correta: ${esc(x.q.opts[x.q.a])}<br><span class="muted">${esc(x.q.exp)}</span>${x.q.svg || ''}</li>`).join('') + '</ul>'
       : '<p style="margin:0">Nenhum erro. Parabéns!</p>');
   }
   show('result');
@@ -1004,7 +1728,9 @@ $('#btnReset').addEventListener('click', e => {
 /* ---------- ÁREA DO ADULTO (senha simples; indicadores vindos do banco) ---------- */
 const ADMIN_PW = '4321';
 const UNIT_OF = {};
-GEO_UNITS.forEach(u => [...u.lessons, u.boss].forEach(n => { UNIT_OF[n.id] = u.title; }));
+ALL_UNITS.forEach(u => [...u.lessons, u.boss].forEach(n => { UNIT_OF[n.id] = u.title; }));
+const UNIT_SUBJ = {};
+ALL_UNITS.forEach(u => { UNIT_SUBJ[u.title] = u.subj; });
 const pctOf = (r, t) => t ? Math.round(r / t * 100) + '%' : '—';
 function summarize(doc){
   const d = doc.data() || {};
@@ -1025,9 +1751,10 @@ function summarize(doc){
     .map(n => `<li>${esc(n.title)}: ${pctOf(st[n.id].r, st[n.id].t)} (${st[n.id].r} de ${st[n.id].t})</li>`).join('');
   const erros = (d.erros || []).slice(0, 8).map(e => `<li>${esc(e.q)} <span class="muted">(${esc(e.de || '')})</span></li>`).join('');
   const rows = SUBJECTS.map(s => {
-    if (s.id !== 'geo') return `<tr><td>${esc(s.name)}</td><td colspan="2" class="muted" style="text-align:left">Trilha em breve</td></tr>`;
-    const tot = Object.keys(units).reduce((a, u) => { a.r += units[u].r; a.t += units[u].t; a.pts += units[u].pts; return a; }, { r: 0, t: 0, pts: 0 });
-    const unitRows = Object.keys(units).map(u => `<tr><td style="padding-left:18px">↳ ${esc(u)}</td><td>${pctOf(units[u].r, units[u].t)}</td><td>${units[u].pts}</td></tr>`).join('');
+    const us = Object.keys(units).filter(u => UNIT_SUBJ[u] === s.id);
+    if (!us.length) return `<tr><td>${esc(s.name)}</td><td colspan="2" class="muted" style="text-align:left">Trilha em breve</td></tr>`;
+    const tot = us.reduce((a, u) => { a.r += units[u].r; a.t += units[u].t; a.pts += units[u].pts; return a; }, { r: 0, t: 0, pts: 0 });
+    const unitRows = us.map(u => `<tr><td style="padding-left:18px">↳ ${esc(u)}</td><td>${pctOf(units[u].r, units[u].t)}</td><td>${units[u].pts}</td></tr>`).join('');
     return `<tr><td><b>${esc(s.name)}</b></td><td>${pctOf(tot.r, tot.t)}</td><td>${tot.pts}</td></tr>${unitRows}`;
   }).join('');
   const last = d.atualizado ? new Date(d.atualizado).toLocaleString('pt-BR') : '—';
@@ -1087,3 +1814,5 @@ try { savedAluno = localStorage.getItem('trilha-aluno'); } catch (e) {}
 if (savedAluno) { setAluno(savedAluno); renderTrail(); }
 else { show('welcome'); }
 </script>
+
+</body></html>
