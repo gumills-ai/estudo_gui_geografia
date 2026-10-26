@@ -46,6 +46,9 @@ button{font:inherit;color:inherit}
 .subj{flex:none;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:14px}
 .subj[aria-current="true"]{background:var(--sea);color:var(--bg);border-color:var(--sea)}
 .subj.off{color:var(--muted);cursor:not-allowed}
+#subjects{display:flex;gap:8px;align-items:center;margin:8px 0}
+#subSel{flex:1;min-width:0;font:inherit;font-weight:700;font-size:15px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:inherit}
+.subArrow{padding:6px 14px;font-size:20px;line-height:1}
 .subnote{font-size:13px;color:var(--muted);margin:4px 0 8px;min-height:1.2em}
 
 /* Trail */
@@ -2207,9 +2210,12 @@ function show(name){
 
 /* ---------- TRAIL ---------- */
 function renderSubjects(){
-  $('#subjects').innerHTML = SUBJECTS.map(s =>
-    `<button class="subj ${s.active ? '' : 'off'}" data-s="${s.id}" aria-current="${s.id === currentSubject}" type="button">${esc(s.name)}${s.active ? '' : ' · em breve'}</button>`
-  ).join('');
+  $('#subjects').innerHTML =
+    `<button class="ghost subArrow" id="subPrev" type="button" aria-label="Matéria anterior">‹</button>` +
+    `<select id="subSel" aria-label="Escolher matéria">` +
+    SUBJECTS.map(s => `<option value="${s.id}" ${s.active ? '' : 'disabled'} ${s.id === currentSubject ? 'selected' : ''}>${esc(s.name)}${s.active ? '' : ' · em breve'}</option>`).join('') +
+    `</select>` +
+    `<button class="ghost subArrow" id="subNext" type="button" aria-label="Próxima matéria">›</button>`;
 }
 function renderTrail(){
   const cur = FLAT.findIndex((n, i) => unlocked(i) && !done(n.id));
@@ -2413,10 +2419,17 @@ $('#trail').addEventListener('click', e => {
   startLesson(FLAT[Number(b.dataset.i)]);
 });
 $('#subjects').addEventListener('click', e => {
-  const b = e.target.closest('.subj');
-  if (!b) return;
-  const s = SUBJECTS.find(x => x.id === b.dataset.s);
-  if (!s.active) { $('#subnote').textContent = `${s.name} entra na trilha depois de Geografia.`; return; }
+  const dir = e.target.closest('#subPrev') ? -1 : (e.target.closest('#subNext') ? 1 : 0);
+  if (!dir) return;
+  const act = SUBJECTS.filter(x => x.active);
+  const i = act.findIndex(x => x.id === currentSubject);
+  currentSubject = act[(i + dir + act.length) % act.length].id;
+  renderTrail();
+});
+$('#subjects').addEventListener('change', e => {
+  if (e.target.id !== 'subSel') return;
+  const s = SUBJECTS.find(x => x.id === e.target.value);
+  if (!s || !s.active) return;
   currentSubject = s.id;
   renderTrail();
 });
