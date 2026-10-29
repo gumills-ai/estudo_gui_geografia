@@ -1427,9 +1427,9 @@ const SUBJECTS = [
   { id:'mat', name:'Matemática 2', active:true },
   { id:'mat1', name:'Matemática 1', active:true },
   { id:'por', name:'Português', active:false },
-  { id:'ing', name:'Inglês', active:false },
+  { id:'ing', name:'Inglês', active:true },
   { id:'his', name:'História', active:true },
-  { id:'cie', name:'Ciências', active:false },
+  { id:'cie', name:'Ciências', active:true },
   { id:'esp', name:'Espanhol', active:false },
   { id:'red', name:'Redação', active:false }
 ];
@@ -2184,7 +2184,241 @@ HIS_UNITS.unshift(HIS_P1_UNIT);
 HIS_UNITS[1].lessons.push(HIS_MALFAR);
 HIS_UNITS.forEach(u => { u.boss = mkBoss(u.lessons, u.id + '-boss', 'Simulado: ' + u.title); });
 HIS_UNITS[0].lessons[0].free = true;
-const ALL_UNITS = [...GEO_UNITS.filter(u => u.subj !== 'mestre'), ...MAT_UNITS, ...MAT1_UNITS, ...HIS_UNITS, ...GEO_UNITS.filter(u => u.subj === 'mestre')];
+/* ---------- INGLÊS · PHRASAL VERBS (GET, TAKE, LOOK) E MUCH / MANY ---------- */
+/* cada item: [pergunta, alternativa correta, distrator, distrator, distrator, explicação]; a ordem das alternativas é embaralhada abaixo */
+const E = (id, title, resumo, items) => ({ id, title, resumo, qs: items.map(([q, c, d1, d2, d3, exp]) => ({ q, opts: [c, d1, d2, d3], exp })) });
+const ENG_UNITS = [
+  { id:'ing1', subj:'ing', sub:'Inglês · Phrasal verbs · GET', title:'Get', lessons:[
+    E('ing-get-1', 'Get: rotina', [
+      'Phrasal verb é a união de um verbo com uma partícula (preposição ou advérbio). Muitas vezes o sentido não é a soma das palavras.',
+      'get up = levantar-se (da cama). Ex.: I get up at 6 a.m. = Eu me levanto às 6h.',
+      'get on = subir (ônibus, trem, avião). get off = descer (ônibus, trem, avião).',
+      'get in = entrar (carro ou lugar pequeno). get back = voltar.'
+    ], [
+      ['What does "get up" mean?', 'levantar-se da cama', 'chegar em casa', 'continuar algo', 'entrar em um carro', 'get up significa levantar-se (da cama). Ex.: I get up at 6 a.m.'],
+      ['Qual phrasal verb significa "descer de ônibus"?', 'get off', 'get on', 'get back', 'get in', 'get off significa descer de ônibus, trem ou avião. get on é subir.'],
+      ['Qual phrasal verb significa "entrar em um carro"?', 'get in', 'get on', 'get off', 'get over', 'get in significa entrar em carro ou em espaço pequeno. Para ônibus, trem ou avião, use get on.'],
+      ['I can\'t ___ early on Sundays. (levantar cedo)', 'get up', 'get off', 'get along', 'get over', 'get up significa levantar-se. Ex.: I can\'t get up early on Sundays.'],
+      ['I usually ___ home around 7 p.m. (voltar para casa)', 'get back', 'get up', 'get on', 'get in', 'get back significa voltar. Ex.: I usually get back home around 7 p.m.'],
+      ['Qual frase significa "Ela chegou em casa às 22h"?', 'She got back home at 10 p.m.', 'She got up home at 10 p.m.', 'She got off home at 10 p.m.', 'She got on home at 10 p.m.', 'get back = voltar, chegar de volta. "got back home" = chegou em casa.']
+    ]),
+    E('ing-get-2', 'Get: pessoas', [
+      'get along with = dar-se bem com alguém. Ex.: I get along with my classmates = Eu me dou bem com meus colegas.',
+      'get over = superar (doença, tristeza ou problema). Ex.: She got over the flu.',
+      'get on with = continuar o que estava sendo feito. Ex.: Let\'s get on with the exercise.',
+      'get through = conseguir passar por algo difícil, como uma prova. Ex.: I got through the exam.'
+    ], [
+      ['O que significa "get along with"?', 'dar-se bem com alguém', 'superar algo', 'continuar algo', 'encontrar algo', 'get along with significa dar-se bem com alguém. Ex.: I get along with my classmates.'],
+      ['She ___ the flu in one week. (superou)', 'got over', 'got along', 'got on', 'got up', 'get over significa superar. Ex.: She got over the flu in one week.'],
+      ['Let\'s ___ the exercise. (continuar)', 'get on with', 'get over', 'get along', 'get back', 'get on with significa continuar o que estava sendo feito. Ex.: Let\'s get on with the exercise.'],
+      ['Do you ___ your new classmates? (dar-se bem)', 'get along with', 'get up to', 'get back to', 'get off with', 'get along with significa dar-se bem. Ex.: Do you get along with your new classmates?'],
+      ['Qual phrasal verb significa "passar por uma prova difícil"?', 'get through', 'get off', 'get up', 'get on with', 'get through significa conseguir passar por algo difícil. Ex.: I got through the exam.'],
+      ['Qual frase significa "Eu me dou bem com meu irmão"?', 'I get along with my brother.', 'I get over my brother.', 'I get back my brother.', 'I get up my brother.', 'Só get along with significa dar-se bem com alguém. Os outros têm sentidos diferentes.']
+    ])
+  ] },
+  { id:'ing2', subj:'ing', sub:'Inglês · Phrasal verbs · TAKE', title:'Take', lessons:[
+    E('ing-take-1', 'Take: atividades', [
+      'take off = decolar (avião) ou tirar (roupa, calçado). Ex.: Take off your shoes = Tire seus sapatos.',
+      'take out = levar algo para fora ou retirar de um lugar. Ex.: Take out the trash = Leve o lixo para fora.',
+      'take on = assumir uma tarefa ou contratar. Ex.: The company will take on ten workers = A empresa vai contratar dez funcionários.',
+      'take up = começar um hobby ou atividade. Ex.: I want to take up the guitar. take after = parecer com um parente. Ex.: Ana takes after her father.'
+    ], [
+      ['O avião vai decolar às 15h. Qual phrasal verb completa? (The plane will ___ at 3 p.m.)', 'take off', 'take on', 'take out', 'take after', 'take off significa decolar, no caso de avião.'],
+      ['Take ___ your shoes before entering the room. (tire)', 'off', 'on', 'out', 'up', 'take off significa tirar roupa ou calçado. Ex.: Take off your shoes.'],
+      ['Please ___ the trash before dinner. (levar o lixo para fora)', 'take out', 'take on', 'take up', 'take after', 'take out pode significar levar algo para fora. Ex.: Take out the trash.'],
+      ['The company decided to ___ ten new workers. (contratar)', 'take on', 'take off', 'take up', 'take back', 'take on significa contratar ou assumir. Ex.: The company will take on ten workers.'],
+      ['I want to ___ the guitar this year. (começar a tocar)', 'take up', 'take out', 'take after', 'take off', 'take up significa começar um hobby ou atividade. Ex.: I want to take up the guitar.'],
+      ['Ana ___ her father: they both love music. (parece com)', 'takes after', 'takes off', 'takes on', 'takes out', 'take after significa parecer com um parente. Ex.: Ana takes after her father.']
+    ]),
+    E('ing-take-2', 'Take: cuidados', [
+      'take care of = cuidar de algo ou alguém. Ex.: Who will take care of my cat?',
+      'take place = acontecer (evento). Ex.: The concert will take place on Saturday.',
+      'take back = retirar o que foi dito ou devolver algo. Ex.: I take it back = Eu retiro o que disse.',
+      'take over = assumir o controle de algo. Ex.: When the manager left, Paulo took over the team.'
+    ], [
+      ['Who will ___ my cat while I\'m away? (cuidar)', 'take care of', 'take off', 'take out', 'take up', 'take care of significa cuidar de algo ou alguém. Ex.: Who will take care of my cat?'],
+      ['The concert will ___ next Saturday. (acontecer)', 'take place', 'take off', 'take on', 'take back', 'take place significa acontecer, para eventos. Ex.: The concert will take place next Saturday.'],
+      ['I\'m sorry. I ___ what I said. (retiro)', 'take it back', 'take it off', 'take it out', 'take it over', 'take back significa retirar o que foi dito. Ex.: I take it back.'],
+      ['When the manager left, Paulo ___ the team. (assumiu o controle)', 'took over', 'took off', 'took out', 'took after', 'take over significa assumir o controle de algo. Ex.: Paulo took over the team.'],
+      ['Qual frase significa "Quem vai cuidar do meu gato?"', 'Who will take care of my cat?', 'Who will take off my cat?', 'Who will take after my cat?', 'Who will take up my cat?', 'take care of significa cuidar. Os outros phrasal verbs têm sentidos diferentes.'],
+      ['Qual frase significa "Tire seu casaco, por favor"?', 'Please take off your coat.', 'Please take up your coat.', 'Please take on your coat.', 'Please take after your coat.', 'take off significa tirar roupa. Ex.: Please take off your coat.']
+    ])
+  ] },
+  { id:'ing3', subj:'ing', sub:'Inglês · Phrasal verbs · LOOK', title:'Look', lessons:[
+    E('ing-look-1', 'Look: procurar', [
+      'look at = olhar para algo. Ex.: Look at the board = Olhe para o quadro.',
+      'look for = procurar algo. Ex.: I\'m looking for my keys = Estou procurando minhas chaves.',
+      'look up = pesquisar (dicionário, internet). Ex.: Look up the meaning in the dictionary.',
+      'look after = cuidar de alguém ou algo. Ex.: My grandmother looks after my sister. look into = investigar. look out = tomar cuidado.'
+    ], [
+      ['Look ___ the board, please. (olhe para)', 'at', 'for', 'after', 'into', 'look at significa olhar para algo. Ex.: Look at the board.'],
+      ['I can\'t find my keys. I\'m ___ them. (procurando)', 'looking for', 'looking after', 'looking into', 'looking up', 'look for significa procurar algo. Ex.: I\'m looking for my keys.'],
+      ['Look ___ the meaning in the dictionary. (pesquise)', 'up', 'for', 'after', 'at', 'look up significa pesquisar. Ex.: Look up the meaning in the dictionary.'],
+      ['My grandmother ___ my sister on weekends. (cuida de)', 'looks after', 'looks for', 'looks into', 'looks up', 'look after significa cuidar. Ex.: My grandmother looks after my sister.'],
+      ['The police will ___ the robbery. (investigar)', 'look into', 'look after', 'look for', 'look up', 'look into significa investigar. Ex.: The police will look into the robbery.'],
+      ['Qual frase significa "Cuidado!"?', 'Look out!', 'Look at!', 'Look for!', 'Look up!', 'look out significa tomar cuidado, como em um aviso de perigo. Ex.: Look out!']
+    ]),
+    E('ing-look-2', 'Look: expectativa', [
+      'look forward to + verbo com -ing = estar ansioso para. Ex.: I\'m looking forward to seeing you = Estou ansioso para ver você.',
+      'Aqui o to é preposição: depois dele o verbo fica no -ing, não no infinitivo.',
+      'look like = parecer (aparência). Ex.: It looks like rain = Parece que vai chover.',
+      'Passado: look after vira looked after; look for vira looked for.'
+    ], [
+      ['I\'m looking forward to ___ you next week. (ver)', 'seeing', 'see', 'to see', 'saw', 'Depois de "to" usado como preposição, o verbo fica no -ing. Ex.: looking forward to seeing you.'],
+      ['It ___ like rain this afternoon. (parece)', 'looks', 'looks at', 'looks for', 'looks after', 'look like significa parecer. Ex.: It looks like rain.'],
+      ['Qual frase significa "Parece que vai chover"?', 'It looks like it\'s going to rain.', 'It looks forward to rain.', 'It looks for rain.', 'It looks up rain.', 'look like significa parecer. "It looks like" + frase.'],
+      ['Ana is ___ her birthday party. (ansiosa para)', 'looking forward to', 'looking at', 'looking up', 'looking for', 'look forward to significa estar ansioso para. Ex.: Ana is looking forward to her birthday party.'],
+      ['Qual frase significa "Estou ansioso para conhecer você"?', 'I\'m looking forward to meeting you.', 'I\'m looking for meeting you.', 'I\'m looking at meeting you.', 'I\'m looking after meeting you.', 'look forward to + -ing. "looking for" e "looking at" têm outros sentidos.'],
+      ['She ___ the house while we were away. (cuidou de)', 'looked after', 'looked for', 'looked at', 'looked forward to', 'look after no passado é looked after. Ex.: She looked after the house.']
+    ])
+  ] },
+  { id:'ing4', subj:'ing', sub:'Inglês · Gramática · MUCH e MANY', title:'Much e many', lessons:[
+    E('ing-mm-1', 'Much e many: regras', [
+      'Many é usado com substantivos contáveis no plural: many books, many students.',
+      'Much é usado com substantivos incontáveis: much water, much time, much homework.',
+      'Incontáveis comuns: water, money, time, homework, information, advice.',
+      'Perguntas: How many + plural contável? How much + incontável?'
+    ], [
+      ['There are ___ books on the shelf. (muitos)', 'many', 'much', 'tall', 'fast', 'Books é contável e plural. Use many: many books.'],
+      ['I have ___ homework today. (muito)', 'much', 'many', 'tall', 'fast', 'Homework é incontável em inglês. Use much: much homework.'],
+      ['There isn\'t ___ milk in the fridge. (muito)', 'much', 'many', 'few', 'tall', 'Milk é incontável. Em frase negativa, use much: There isn\'t much milk.'],
+      ['She has ___ friends in her class. (muitos)', 'many', 'much', 'tall', 'fast', 'Friends é contável no plural: many friends.'],
+      ['How ___ students are there in the classroom? (quantos)', 'many', 'much', 'tall', 'fast', 'How many + substantivo contável no plural: How many students.'],
+      ['How ___ water do you drink every day? (quanta)', 'much', 'many', 'tall', 'fast', 'Water é incontável: How much water.']
+    ]),
+    E('ing-mm-2', 'Much e many: frases', [
+      'Em frases negativas e interrogativas, use many (contável) e much (incontável). Ex.: I don\'t have many friends. Is there much milk?',
+      'Em frases afirmativas do dia a dia, prefira a lot of ou lots of, que servem para contáveis e incontáveis. Ex.: We have a lot of work.',
+      'Much e many em frase afirmativa soam formais e pouco usados na conversa.',
+      'Checagem rápida: contável com many; incontável com much; a lot of serve para os dois.'
+    ], [
+      ['We don\'t have ___ time. (muito tempo)', 'much', 'many', 'tall', 'fast', 'Time é incontável. Em frase negativa, use much: We don\'t have much time.'],
+      ['I don\'t have ___ friends in this city. (muitos)', 'many', 'much', 'tall', 'fast', 'Friends é contável no plural. Em negativa: I don\'t have many friends.'],
+      ['Qual frase é a mais natural para "Eu tenho muitos livros"?', 'I have a lot of books.', 'I have much books.', 'I have much of books.', 'I have a much of books.', 'Em afirmativa, a lot of é a forma natural. "much books" está errado porque books é contável.'],
+      ['How ___ coffee do you drink every day? (quanto)', 'much', 'many', 'tall', 'fast', 'Coffee é incontável aqui: How much coffee.'],
+      ['There aren\'t ___ cars on the street. (muitos)', 'many', 'much', 'tall', 'fast', 'Cars é contável no plural: There aren\'t many cars on the street.'],
+      ['How ___ people came to the party? (quantas)', 'many', 'much', 'tall', 'fast', 'People é contável no plural: How many people.']
+    ])
+  ] }
+];
+let ENG_ROT = 0;
+ENG_UNITS.forEach(u => u.lessons.forEach(l => l.qs.forEach(q => {
+  // embaralha a posição da correta de forma determinística; a correta entra sempre como opts[0] antes
+  const r = ENG_ROT++ % 4, o = q.opts;
+  q.opts = o.map((_, j) => o[(j + r) % 4]);
+  q.a = (4 - r) % 4;
+})));
+ENG_UNITS.forEach(u => { u.boss = mkBoss(u.lessons, u.id + '-boss', 'Simulado: ' + u.title); });
+ENG_UNITS[0].lessons[0].free = true;
+/* ---------- CIÊNCIAS · SISTEMA ENDÓCRINO (Unidade 2, cap. 1) ---------- */
+const CIE_UNITS = [
+  { id:'cie1', subj:'cie', sub:'Ciências · Sistema endócrino · Hipófise', title:'Hipófise e hormônios', lessons:[
+    E('cie-hip-1', 'Glândulas e a hipófise', [
+      'Glândulas endócrinas lançam hormônios direto no sangue. Glândulas exócrinas lançam secreções por ductos, como o suor e a saliva.',
+      'A hipófise fica na base do encéfalo, presa ao hipotálamo, dentro de uma cavidade do osso esfenoide.',
+      'Ela é chamada de glândula-mestra porque controla outras glândulas por meio de seus hormônios.'
+    ], [
+      ['Onde está localizada a hipófise?', 'Na base do encéfalo, presa ao hipotálamo', 'No pescoço, na frente da traqueia', 'No abdômen, acima dos rins', 'Dentro do coração', 'A hipófise fica na base do encéfalo. A tireoide é que fica no pescoço.'],
+      ['Por que a hipófise é chamada de glândula-mestra?', 'Porque controla outras glândulas por meio de seus hormônios', 'Porque é a maior glândula do corpo', 'Porque produz somente hormônios sexuais', 'Porque não depende do sangue', 'A glândula-mestra regula outras glândulas, como tireoide, suprarrenais e gônadas.'],
+      ['Qual é a função do hormônio do crescimento (GH)?', 'Estimular o crescimento e participar do metabolismo', 'Produzir leite nas mamas', 'Contrair o útero no parto', 'Regular o cálcio do sangue', 'O GH estimula o crescimento dos ossos e tecidos e participa do metabolismo.'],
+      ['Qual é a função da prolactina?', 'Estimular a produção de leite nas mamas', 'Estimular contrações do útero', 'Aumentar a produção de insulina', 'Controlar a temperatura do corpo', 'A prolactina é o hormônio que estimula a produção de leite nas mamas.'],
+      ['Qual é a função da ocitocina?', 'Provocar contrações do útero no parto e a saída do leite', 'Estimular a produção de leite', 'Aumentar o cálcio no sangue', 'Produzir hormônios da tireoide', 'A ocitocina atua no parto e na liberação do leite. É produzida no hipotálamo e liberada pela hipófise posterior.']
+    ]),
+    E('cie-hip-2', 'Hormônios da hipófise e do hipotálamo', [
+      'A hipófise anterior produz GH, prolactina, TSH, ACTH, LH e FSH.',
+      'A hipófise posterior armazena e libera ADH e ocitocina, que são produzidos no hipotálamo.',
+      'LH e FSH atuam nos ovários e nos testículos, controlando a produção de hormônios sexuais e de gametas.'
+    ], [
+      ['Qual hormônio da hipófise estimula a tireoide?', 'TSH', 'ACTH', 'FSH', 'GH', 'TSH é o hormônio que estimula a tireoide a produzir seus hormônios.'],
+      ['Qual é a função do LH?', 'Estimular a ovulação nas mulheres e a produção de testosterona nos homens', 'Aumentar o cálcio no sangue', 'Estimular a produção de leite', 'Controlar a produção de insulina', 'O LH atua nos ovários e nos testículos e controla a ovulação e a produção de hormônios sexuais.'],
+      ['Qual é a função do FSH?', 'Estimular o desenvolvimento dos folículos nos ovários e a produção de espermatozoides', 'Provocar contração do útero', 'Regular a glicose do sangue', 'Produzir o hormônio do crescimento', 'O FSH atua nos ovários, estimulando os folículos, e nos testículos, estimulando a produção de espermatozoides.'],
+      ['Qual é a função do ADH?', 'Aumentar a reabsorção de água nos rins', 'Aumentar a produção de insulina', 'Provocar contração do útero', 'Estimular o crescimento ósseo', 'O ADH (hormônio antidiurético) faz os rins reter água, produzindo urina mais concentrada.'],
+      ['Onde são produzidos a ocitocina e o ADH?', 'No hipotálamo, e são liberados pela hipófise posterior', 'Na tireoide', 'No pâncreas', 'Nas suprarrenais', 'Ambos são produzidos no hipotálamo e armazenados e liberados pela hipófise posterior.']
+    ])
+  ] },
+  { id:'cie2', subj:'cie', sub:'Ciências · Sistema endócrino · Tireoide e suprarrenais', title:'Tireoide, paratireoides e suprarrenais', lessons:[
+    E('cie-tir-1', 'Tireoide e iodo', [
+      'A tireoide fica na frente do pescoço, perto da traqueia, e produz T3 e T4 (tiroxina), que aceleram o metabolismo.',
+      'O iodo é matéria-prima para a produção desses hormônios.',
+      'Hipertireoidismo: excesso de hormônios, com metabolismo acelerado. Hipotireoidismo: falta de hormônios, com metabolismo lento.'
+    ], [
+      ['Onde fica a tireoide?', 'Na frente do pescoço, perto da traqueia', 'Na base do encéfalo', 'Atrás do estômago', 'Dentro do fígado', 'A tireoide fica na parte da frente do pescoço.'],
+      ['Quais hormônios a tireoide produz e qual é a sua função?', 'T3 e T4 (tiroxina), que aumentam o metabolismo do corpo', 'Insulina e glucagon, que regulam a glicose', 'Testosterona e estrogênio, que controlam a puberdade', 'Adrenalina e cortisol, que atuam no estresse', 'T3 e T4 aumentam o metabolismo basal do corpo.'],
+      ['Qual é a importância do iodo para a tireoide?', 'É matéria-prima para a produção dos hormônios T3 e T4', 'Ele diminui a produção de hormônios', 'Ele regula o cálcio nos ossos', 'Ele produz a insulina', 'Sem iodo, a tireoide não consegue fabricar T3 e T4.'],
+      ['O que é hipertireoidismo?', 'Excesso de hormônios da tireoide, com metabolismo acelerado', 'Falta de hormônios da tireoide, com metabolismo lento', 'Aumento da tireoide por falta de iodo', 'Falta de insulina no sangue', 'No hipertireoidismo, o metabolismo acelera e podem surgir perda de peso, nervosismo e batimentos rápidos.'],
+      ['O que é hipotireoidismo?', 'Falta de hormônios da tireoide, com metabolismo lento', 'Excesso de hormônios da tireoide', 'Aumento da tireoide por falta de iodo', 'Excesso de glicose no sangue', 'No hipotireoidismo, o metabolismo fica lento e podem surgir cansaço, ganho de peso e sensação de frio.']
+    ]),
+    E('cie-tir-2', 'Paratireoides, suprarrenais e bócio', [
+      'As paratireoides ficam atrás da tireoide e produzem o PTH (paratormônio), que aumenta o cálcio no sangue.',
+      'As suprarrenais ficam sobre os rins. O córtex produz cortisol e aldosterona; a medula produz adrenalina.',
+      'Bócio endêmico é o aumento da tireoide causado pela falta de iodo na alimentação.'
+    ], [
+      ['Qual hormônio é produzido pelas paratireoides e qual é a sua função?', 'PTH (paratormônio), que aumenta o cálcio no sangue', 'Insulina, que diminui a glicose', 'ADH, que aumenta a reabsorção de água', 'Ocitocina, que provoca contrações do útero', 'O PTH eleva o nível de cálcio no sangue, retirando cálcio dos ossos quando necessário.'],
+      ['O que é bócio endêmico?', 'Aumento da tireoide causado pela falta de iodo na alimentação', 'Falta de hormônios da tireoide com metabolismo lento', 'Excesso de insulina no sangue', 'Inflamação dos rins', 'O bócio endêmico ocorre em regiões em que a alimentação tem pouco iodo. A tireoide aumenta para tentar captar mais iodo.'],
+      ['Onde ficam as glândulas suprarrenais?', 'Sobre os rins', 'Na base do encéfalo', 'Dentro do pâncreas', 'Atrás da tireoide', 'As suprarrenais ficam em cima de cada rim.'],
+      ['Qual hormônio da medula suprarrenal prepara o corpo para situações de emergência?', 'Adrenalina', 'Insulina', 'Ocitocina', 'TSH', 'A adrenalina acelera o coração e aumenta a energia disponível em situações de estresse ou perigo.'],
+      ['Qual hormônio produzido pelo córtex das suprarrenais participa da resposta ao estresse?', 'Cortisol', 'Tiroxina', 'Glucagon', 'Prolactina', 'O cortisol é um glicocorticoide que ajuda o corpo a lidar com o estresse prolongado.']
+    ])
+  ] },
+  { id:'cie3', subj:'cie', sub:'Ciências · Sistema endócrino · Pâncreas', title:'Pâncreas e diabetes', lessons:[
+    E('cie-pan-1', 'Pâncreas: insulina e glucagon', [
+      'O pâncreas é uma glândula mista: a parte exócrina produz o suco pancreático, e a parte endócrina, as ilhotas de Langerhans, produz hormônios.',
+      'As células beta produzem insulina, que reduz a glicose do sangue.',
+      'As células alfa produzem glucagon, que aumenta a glicose do sangue.'
+    ], [
+      ['Por que o pâncreas é considerado uma glândula mista?', 'Porque tem uma parte exócrina (suco pancreático) e uma parte endócrina (hormônios)', 'Porque produz somente hormônios e nenhuma enzima', 'Porque fica dentro do fígado', 'Porque libera hormônios somente por ductos', 'O pâncreas tem função exócrina e endócrina, por isso é uma glândula mista.'],
+      ['Qual hormônio do pâncreas reduz a glicose no sangue?', 'Insulina', 'Glucagon', 'Adrenalina', 'Ocitocina', 'A insulina permite que a glicose entre nas células, reduzindo seu nível no sangue.'],
+      ['Qual hormônio do pâncreas aumenta a glicose no sangue?', 'Glucagon', 'Insulina', 'ADH', 'Prolactina', 'O glucagon estimula a liberação de glicose armazenada no fígado.'],
+      ['Como a insulina atua no corpo?', 'Ajuda a glicose a entrar nas células, diminuindo o nível de glicose no sangue', 'Aumenta a produção de leite', 'Diminui o cálcio nos ossos', 'Produz cortisol nas suprarrenais', 'A insulina é o principal hormônio que reduz a glicose no sangue.'],
+      ['Qual é a parte endócrina do pâncreas?', 'As ilhotas de Langerhans', 'Os ductos pancreáticos', 'O duodeno', 'A vesícula biliar', 'As ilhotas de Langerhans produzem insulina e glucagon.']
+    ]),
+    E('cie-pan-2', 'Diabetes mellitus e diabetes insipidus', [
+      'Diabetes mellitus: excesso de glicose no sangue por falta de insulina ou por resistência do corpo à insulina.',
+      'Tipo 1: o sistema imune destrói as células beta. Tipo 2: o corpo responde mal à insulina, muito ligado a obesidade e sedentarismo.',
+      'Diabetes insipidus: falta de ADH ou rins que não respondem a ele. Causa muita urina diluída e sede intensa; não envolve a glicose.'
+    ], [
+      ['O que é diabetes mellitus?', 'Excesso de glicose no sangue por falta ou ação insuficiente da insulina', 'Falta de ADH com grande volume de urina', 'Excesso de tiroxina no sangue', 'Aumento da tireoide por falta de iodo', 'No diabetes mellitus, a glicose se acumula no sangue porque a insulina não atua bem.'],
+      ['Qual é a principal característica do diabetes tipo 1?', 'O sistema imune destrói as células beta, e a pessoa passa a depender de insulina', 'Resistência à insulina, muito associada à obesidade', 'Falta de iodo na alimentação', 'Falta de ADH nos rins', 'No tipo 1, a produção de insulina cessa, por isso a insulina precisa ser aplicada.'],
+      ['Qual é a principal característica do diabetes tipo 2?', 'O corpo responde mal à insulina, muito ligado a obesidade e sedentarismo', 'Destruição das células alfa do pâncreas', 'Falta de ADH', 'Excesso de iodo no sangue', 'No tipo 2, há resistência à insulina e a produção pode diminuir com o tempo.'],
+      ['O que é diabetes insipidus?', 'Falta de ADH ou rins que não respondem a ele, causando muita urina diluída e sede intensa', 'Excesso de glicose causado por insulina em excesso', 'Aumento da tireoide por falta de iodo', 'Falta de cortisol nas suprarrenais', 'O ADH faz os rins reter água. Sem ele, a pessoa elimina muita urina e sente muita sede.'],
+      ['Qual é a principal diferença entre diabetes mellitus e diabetes insipidus?', 'No mellitus o problema envolve glicose e insulina; no insipidus envolve ADH e a água da urina', 'O mellitus causa só sede; o insipidus causa só açúcar no sangue', 'Os dois são causados pela falta de iodo', 'Não há diferença, são sinônimos', 'São doenças diferentes, com causas e sintomas diferentes.']
+    ])
+  ] },
+  { id:'cie4', subj:'cie', sub:'Ciências · Puberdade · Hormônios sexuais', title:'Puberdade', lessons:[
+    E('cie-pub-1', 'Hormônios sexuais', [
+      'Testosterona: produzida nos testículos, desenvolve características masculinas, como voz mais grave e pelos.',
+      'Estrogênio: produzido nos ovários, desenvolve características femininas, como o crescimento das mamas e do quadril.',
+      'Progesterona: produzida nos ovários, prepara o útero para uma possível gravidez e regula o ciclo menstrual.'
+    ], [
+      ['Onde é produzida a testosterona?', 'Nos testículos', 'Nos ovários', 'Na tireoide', 'No pâncreas', 'A testosterona é o principal hormônio sexual masculino e é produzida nos testículos.'],
+      ['Qual é a função da progesterona?', 'Preparar o útero para uma possível gravidez e regular o ciclo menstrual', 'Aumentar a produção de insulina', 'Provocar contrações do útero no parto', 'Aumentar o cálcio no sangue', 'A progesterona atua com o estrogênio no ciclo menstrual e na preparação do útero.'],
+      ['Quais hormônios estão relacionados à puberdade?', 'GnRH (hipotálamo), LH e FSH (hipófise) e os hormônios sexuais', 'Insulina e glucagon apenas', 'TSH e T3 apenas', 'ADH e ocitocina apenas', 'A puberdade é controlada pelo hipotálamo, pela hipófise e pelas gônadas, que produzem os hormônios sexuais.'],
+      ['Qual é a função do estrogênio?', 'Desenvolver características femininas, como o crescimento das mamas e do quadril', 'Diminuir a produção de leite', 'Produzir insulina no pâncreas', 'Regular a glicose do sangue', 'O estrogênio é o principal hormônio sexual feminino, produzido nos ovários.'],
+      ['Qual é a função da testosterona?', 'Desenvolver características masculinas, como voz mais grave, pelos e massa muscular', 'Aumentar a glicose no sangue', 'Provocar contração do útero', 'Diminuir o crescimento dos ossos', 'A testosterona atua no desenvolvimento das características sexuais masculinas.']
+    ]),
+    E('cie-pub-2', 'Transformações da puberdade', [
+      'Puberdade é a fase de transição da infância para a adolescência, com amadurecimento sexual.',
+      'Meninos: aumento dos testículos, voz mais grave, pelos e crescimento muscular. Meninas: desenvolvimento das mamas, quadril mais largo e início da menstruação.',
+      'O hipotálamo ativa a hipófise, que libera LH e FSH. Esses hormônios estimulam as gônadas a produzir os hormônios sexuais.'
+    ], [
+      ['Quais transformações ocorrem nos corpos de meninos na puberdade?', 'Voz mais grave, pelos, aumento dos testículos e crescimento muscular', 'Início da menstruação e aumento das mamas', 'Aumento da tireoide por falta de iodo', 'Diminuição da massa muscular', 'Essas são algumas das mudanças típicas da puberdade masculina, sob ação da testosterona.'],
+      ['Quais transformações ocorrem nos corpos de meninas na puberdade?', 'Desenvolvimento das mamas, alargamento do quadril e início da menstruação', 'Voz mais grave e crescimento de barba', 'Aumento dos testículos', 'Diminuição da massa muscular', 'Essas mudanças são típicas da puberdade feminina, sob ação do estrogênio e da progesterona.'],
+      ['Qual é o papel do hipotálamo e da hipófise na puberdade?', 'O hipotálamo ativa a hipófise, que libera LH e FSH para estimular as gônadas', 'A hipófise não participa; só os ovários e testículos atuam', 'A hipófise produz tiroxina, que estimula os testículos', 'Eles produzem somente insulina e glucagon', 'O hipotálamo e a hipófise comandam as gônadas durante a puberdade.'],
+      ['Por que a puberdade acontece?', 'Porque o corpo passa a produzir hormônios sexuais, que desenvolvem as características sexuais e a capacidade reprodutiva', 'Porque a tireoide passa a produzir muito iodo', 'Porque o pâncreas para de produzir insulina', 'Porque a hipófise para de produzir GH', 'A puberdade é causada pela ativação do sistema endócrino que leva à produção de hormônios sexuais.'],
+      ['Qual é a relação entre o sistema nervoso e os hormônios na puberdade?', 'O hipotálamo, parte do sistema nervoso, controla a hipófise, que controla as gônadas', 'Eles não se relacionam', 'O sistema nervoso produz testosterona nos testículos', 'O sistema nervoso produz somente insulina', 'O hipotálamo liga o sistema nervoso ao sistema endócrino.']
+    ])
+  ] }
+];
+let CIE_ROT = 0;
+CIE_UNITS.forEach(u => u.lessons.forEach(l => l.qs.forEach(q => {
+  const r = CIE_ROT++ % 4, o = q.opts;
+  q.opts = o.map((_, j) => o[(j + r) % 4]);
+  q.a = (4 - r) % 4;
+})));
+CIE_UNITS.forEach(u => { u.boss = mkBoss(u.lessons, u.id + '-boss', 'Simulado: ' + u.title); });
+CIE_UNITS[0].lessons[0].free = true;
+
+const ALL_UNITS = [...GEO_UNITS.filter(u => u.subj !== 'mestre'), ...MAT_UNITS, ...MAT1_UNITS, ...HIS_UNITS, ...ENG_UNITS, ...CIE_UNITS, ...GEO_UNITS.filter(u => u.subj === 'mestre')];
 const FLAT = ALL_UNITS.flatMap(u => [...u.lessons, u.boss]);
 
 /* ---------- PROGRESS ---------- */
@@ -2219,7 +2453,7 @@ function renderSubjects(){
 }
 function renderTrail(){
   const cur = FLAT.findIndex((n, i) => unlocked(i) && !done(n.id));
-  let idx = 0, html = S.openUS ? '' : '<p style="margin:12px 0 0"><button class="ghost" id="btnOpenUS" type="button">Começar por Estados Unidos</button></p>';
+  let idx = 0, html = (S.openUS || currentSubject !== 'geo') ? '' : '<p style="margin:12px 0 0"><button class="ghost" id="btnOpenUS" type="button">Começar por Estados Unidos</button></p>';
   ALL_UNITS.forEach(u => {
     if (u.subj !== currentSubject && u.subj !== 'mestre') { idx += u.lessons.length + 1; return; }
     html += `<section class="unit"><header><p class="eyebrow">${esc(u.sub)}</p><h2>${esc(u.title)}</h2>${u.note ? `<p class="note">${esc(u.note)}</p>` : ''}</header><div class="path">`;
